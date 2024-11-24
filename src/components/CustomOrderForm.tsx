@@ -91,34 +91,41 @@ export default function CustomOrderForm() {
       });
 
       if (!response.ok) {
-        // First try to parse as JSON, if that fails, get text
+        const responseClone = response.clone();
         try {
           const errorData = await response.json();
           throw new Error(errorData.error || 'Failed to submit order');
         } catch (jsonError) {
-          const textError = await response.text();
-          throw new Error(textError || 'Failed to submit order');
+          // If JSON parsing fails, try to get the text content
+          const textError = await responseClone.text();
+          console.error('Response text:', textError);
+          throw new Error('Failed to submit order. Please try again.');
         }
       }
 
-      const data = await response.json();
-      console.log('Order submitted successfully:', data);
-      
-      // Clear form
-      setFormData({
-        name: '',
-        email: '',
-        phone: '',
-        description: '',
-        images: [],
-      });
-      setSelectedFiles([]);
-      setPreviewUrls(prev => {
-        // Revoke all URLs
-        prev.forEach(url => URL.revokeObjectURL(url));
-        return [];
-      });
-      setSuccess('Order submitted successfully! We will contact you soon.');
+      try {
+        const data = await response.json();
+        console.log('Order submitted successfully:', data);
+        
+        // Clear form
+        setFormData({
+          name: '',
+          email: '',
+          phone: '',
+          description: '',
+          images: [],
+        });
+        setSelectedFiles([]);
+        setPreviewUrls(prev => {
+          // Revoke all URLs
+          prev.forEach(url => URL.revokeObjectURL(url));
+          return [];
+        });
+        setSuccess('Order submitted successfully! We will contact you soon.');
+      } catch (jsonError) {
+        console.error('Error parsing JSON response:', jsonError);
+        setError('Failed to submit order. Please try again.');
+      }
     } catch (err) {
       console.error('Error submitting form:', err);
       setError(err.message || 'Failed to submit order. Please try again.');
