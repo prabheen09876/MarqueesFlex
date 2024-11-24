@@ -1,0 +1,16 @@
+:root {
+  --background-primary: #D4EBF8;
+  --text-heading: #0A3981;
+  --button-primary: #E38E49;
+  --text-body: #1F509A;
+  
+  /* Hover states */
+  --button-hover: #d39b66;
+  --text-heading-hover: #588177;
+  
+  /* Additional variations */
+  --background-secondary: #1F509A;
+  --button-secondary: #e5b68c;
+  --text-dark: #4a4a4a;
+  --border-color: #E38E49;
+}
