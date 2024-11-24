@@ -82,14 +82,23 @@ export default function CustomOrderForm() {
 
       console.log('Submitting form with files:', selectedFiles);
 
-      const response = await fetch('/api/orders/custom', {
+      // Get the base URL from environment or default to local development
+      const baseUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : '';
+      
+      const response = await fetch(`${baseUrl}/api/orders/custom`, {
         method: 'POST',
         body: formDataToSend,
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to submit order');
+        // First try to parse as JSON, if that fails, get text
+        try {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Failed to submit order');
+        } catch (jsonError) {
+          const textError = await response.text();
+          throw new Error(textError || 'Failed to submit order');
+        }
       }
 
       const data = await response.json();
