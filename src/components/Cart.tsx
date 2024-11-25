@@ -18,7 +18,13 @@ export default function Cart({ isOpen, onClose, items, onUpdateQuantity, onRemov
   const handleCheckout = async (formData: any) => {
     try {
       console.log('Submitting order with data:', formData);
-      const response = await fetch('/api/orders/cart', {
+      
+      // In development, use relative URL, in production use the full URL
+      const baseUrl = import.meta.env.MODE === 'production' 
+        ? import.meta.env.VITE_API_URL || ''
+        : '';
+      
+      const response = await fetch(`${baseUrl}/api/orders/cart`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -35,19 +41,28 @@ export default function Cart({ isOpen, onClose, items, onUpdateQuantity, onRemov
         })
       });
 
+      if (!response.ok) {
+        const responseClone = response.clone();
+        try {
+          const errorData = await response.json();
+          console.error('Error response:', errorData);
+          throw new Error(errorData.error || 'Failed to place order');
+        } catch (jsonError) {
+          const textError = await responseClone.text();
+          console.error('Error response text:', textError);
+          throw new Error('Server error. Please try again later.');
+        }
+      }
+
       const data = await response.json();
       console.log('Server response:', data);
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to place order');
-      }
 
       // Clear cart and close
       onClose();
       alert('Order placed successfully! We will contact you soon.');
     } catch (error) {
       console.error('Checkout error:', error);
-      alert('Failed to place order. Please try again.');
+      alert(error.message || 'Failed to place order. Please try again.');
     }
   };
 
