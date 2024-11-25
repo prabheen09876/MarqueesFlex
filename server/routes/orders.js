@@ -201,14 +201,14 @@ router.post('/custom', async (req, res) => {
 📝 Order Details:
 ${description}
 
-🖼️ Images: ${images.length > 0 ? images.length + ' images uploaded' : 'No images'}
+🖼️ Images: ${images.length > 0 ? images.length + ' images attached' : 'No images'}
 
 🔢 Order ID: #${order.id}
 ⏰ Time: ${new Date().toLocaleString('en-IN')}
 `;
 
-    // Send Telegram notification
-    await sendOrderNotification(message);
+    // Send Telegram notification with images
+    await sendOrderNotification(message, images);
     console.log('Custom order created successfully:', order);
     res.status(201).json(order);
   } catch (error) {

@@ -82,8 +82,10 @@ export default function CustomOrderForm() {
 
       console.log('Submitting form with files:', selectedFiles);
 
-      // Get the base URL from environment or default to local development
-      const baseUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : '';
+      // In development, use relative URL, in production use the full URL
+      const baseUrl = import.meta.env.MODE === 'production' 
+        ? import.meta.env.VITE_API_URL || ''
+        : '';
       
       const response = await fetch(`${baseUrl}/api/orders/custom`, {
         method: 'POST',
@@ -94,12 +96,13 @@ export default function CustomOrderForm() {
         const responseClone = response.clone();
         try {
           const errorData = await response.json();
+          console.error('Error response:', errorData);
           throw new Error(errorData.error || 'Failed to submit order');
         } catch (jsonError) {
           // If JSON parsing fails, try to get the text content
           const textError = await responseClone.text();
-          console.error('Response text:', textError);
-          throw new Error('Failed to submit order. Please try again.');
+          console.error('Error response text:', textError);
+          throw new Error('Server error. Please try again later.');
         }
       }
 

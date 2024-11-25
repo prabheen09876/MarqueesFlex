@@ -28,21 +28,28 @@ const bot = new TelegramBot(token, { polling: false });
 /**
  * Send order notification to admin
  */
-export async function sendOrderNotification(message) {
+export async function sendOrderNotification(message, images = []) {
   try {
-    console.log('Sending Telegram notification:', message);
-    console.log('Using chat ID:', chatId);
-    
-    // Send the message
-    const result = await bot.sendMessage(chatId, message, { 
-      parse_mode: 'HTML',
-      disable_web_page_preview: true
-    });
-    
-    console.log('Telegram notification sent successfully:', result);
-    return result;
+    // First send the text message
+    await bot.sendMessage(chatId, message, { parse_mode: 'HTML' });
+
+    // Then send each image if available
+    if (images && images.length > 0) {
+      for (const imagePath of images) {
+        const fullPath = path.join(projectRoot, imagePath.replace(/^\//, ''));
+        if (fs.existsSync(fullPath)) {
+          try {
+            await bot.sendPhoto(chatId, fs.createReadStream(fullPath));
+          } catch (imageError) {
+            console.error('Error sending image to Telegram:', imageError);
+          }
+        } else {
+          console.error('Image file not found:', fullPath);
+        }
+      }
+    }
   } catch (error) {
-    console.error('Failed to send Telegram notification:', error);
+    console.error('Error sending Telegram notification:', error);
     throw error;
   }
 }
