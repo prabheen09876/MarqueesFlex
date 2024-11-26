@@ -22,7 +22,12 @@ export default async function handler(req, res) {
   }
 
   try {
-    console.log('Received request body:', req.body);
+    console.log('Received request:', {
+      method: req.method,
+      headers: req.headers,
+      body: req.body
+    });
+
     const { name, email, phone, description, images } = req.body;
     
     // Validate required fields

@@ -69,27 +69,19 @@ export default function CustomOrderForm() {
     setSuccess('');
 
     try {
-      const formDataToSend = new FormData();
-      formDataToSend.append('name', formData.name || '');
-      formDataToSend.append('email', formData.email || '');
-      formDataToSend.append('phone', formData.phone || '');
-      formDataToSend.append('description', formData.description || '');
-
-      // Append each file to FormData
-      selectedFiles.forEach((file) => {
-        formDataToSend.append('images', file);
-      });
-
-      console.log('Submitting form with files:', selectedFiles);
-
-      // In development, use relative URL, in production use the full URL
-      const baseUrl = import.meta.env.MODE === 'production' 
-        ? import.meta.env.VITE_API_URL || ''
-        : '';
-      
-      const response = await fetch(`${baseUrl}/api/orders/custom`, {
+      const response = await fetch(`${import.meta.env.MODE === 'production' ? import.meta.env.VITE_API_URL || '' : ''}/api/orders/custom`, {
         method: 'POST',
-        body: formDataToSend,
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          description: formData.description,
+          images: selectedFiles
+        }),
       });
 
       if (!response.ok) {
