@@ -1,7 +1,5 @@
 import fetch from 'node-fetch';
 
-// Removed the bot instance creation as it's no longer needed
-
 /**
  * Send order notification to admin via Telegram
  */
@@ -14,7 +12,7 @@ export async function sendOrderNotification(message, images = []) {
   try {
     // Send text message
     const telegramUrl = `https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`;
-    console.log('Sending message to Telegram:', message);
+    console.log('Sending message to Telegram');
     
     const messageResponse = await fetch(telegramUrl, {
       method: 'POST',
@@ -38,17 +36,18 @@ export async function sendOrderNotification(message, images = []) {
 
     // Send images if any
     if (images && images.length > 0) {
-      console.log(`Sending ${images.length} images to Telegram`);
+      console.log(`Processing ${images.length} images for Telegram`);
       const photoUrl = `https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendPhoto`;
       
       for (const base64Image of images) {
         try {
           // Skip if not a valid base64 image
-          if (!base64Image || !base64Image.startsWith('data:image')) {
-            console.warn('Invalid image data:', base64Image?.substring(0, 50));
+          if (!base64Image || typeof base64Image !== 'string' || !base64Image.startsWith('data:image/')) {
+            console.warn('Invalid image data received');
             continue;
           }
 
+          console.log('Sending image to Telegram...');
           const photoResponse = await fetch(photoUrl, {
             method: 'POST',
             headers: {
@@ -56,23 +55,28 @@ export async function sendOrderNotification(message, images = []) {
             },
             body: JSON.stringify({
               chat_id: process.env.TELEGRAM_CHAT_ID,
-              photo: base64Image
+              photo: base64Image,
+              caption: 'Order Image'
             })
           });
 
           const photoResult = await photoResponse.json();
-          console.log('Telegram photo response:', photoResult);
-
+          
           if (!photoResponse.ok) {
             console.error('Error sending image to Telegram:', photoResult);
+            throw new Error(`Failed to send image: ${JSON.stringify(photoResult)}`);
           }
+
+          console.log('Successfully sent image to Telegram');
         } catch (imageError) {
-          console.error('Error sending image:', imageError);
+          console.error('Error processing image:', imageError);
         }
       }
     }
+
+    return true;
   } catch (error) {
-    console.error('Error sending Telegram notification:', error);
+    console.error('Error in sendOrderNotification:', error);
     throw error;
   }
 }

@@ -66,7 +66,18 @@ export default function CustomOrderForm() {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.readAsDataURL(file);
-      reader.onload = () => resolve(reader.result as string);
+      reader.onload = () => {
+        if (typeof reader.result === 'string') {
+          // Validate that it's an image
+          if (!reader.result.startsWith('data:image/')) {
+            reject(new Error('Invalid image format'));
+            return;
+          }
+          resolve(reader.result);
+        } else {
+          reject(new Error('Failed to read file'));
+        }
+      };
       reader.onerror = error => reject(error);
     });
   };
@@ -78,11 +89,25 @@ export default function CustomOrderForm() {
     setSuccess('');
 
     try {
-      console.log('Submitting form data:', formData);
+      if (!formData.name || !formData.email || !formData.phone || !formData.description) {
+        throw new Error('Please fill in all required fields');
+      }
 
-      // Convert all files to base64
-      const imagePromises = selectedFiles.map(file => fileToBase64(file));
-      const base64Images = await Promise.all(imagePromises);
+      console.log('Converting images to base64...');
+      const base64Images = await Promise.all(
+        selectedFiles.map(async (file) => {
+          try {
+            return await fileToBase64(file);
+          } catch (error) {
+            console.error('Error converting file to base64:', error);
+            return null;
+          }
+        })
+      );
+
+      // Filter out any failed conversions
+      const validImages = base64Images.filter((img): img is string => img !== null);
+      console.log(`Successfully converted ${validImages.length} images`);
 
       // Remove double slash from URL
       const baseUrl = import.meta.env.MODE === 'production'
@@ -90,7 +115,17 @@ export default function CustomOrderForm() {
         : '';
       const apiUrl = `${baseUrl}/api/orders/custom`;
 
-      console.log('API URL:', apiUrl);
+      console.log('Sending request to:', apiUrl);
+
+      const requestBody = {
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        description: formData.description,
+        images: validImages
+      };
+
+      console.log('Sending request with images:', validImages.length);
 
       const response = await fetch(apiUrl, {
         method: 'POST',
@@ -98,13 +133,7 @@ export default function CustomOrderForm() {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          name: formData.name,
-          email: formData.email,
-          phone: formData.phone,
-          description: formData.description,
-          images: base64Images
-        }),
+        body: JSON.stringify(requestBody)
       });
 
       console.log('Response status:', response.status);
@@ -125,6 +154,10 @@ export default function CustomOrderForm() {
         images: [],
       });
       setSelectedFiles([]);
+      setPreviewUrls(prev => {
+        prev.forEach(url => URL.revokeObjectURL(url));
+        return [];
+      });
       setSuccess('Order submitted successfully!');
     } catch (error) {
       console.error('Error submitting form:', error);
