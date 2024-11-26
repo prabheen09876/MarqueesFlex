@@ -62,6 +62,15 @@ export default function CustomOrderForm() {
     });
   };
 
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = error => reject(error);
+    });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -70,6 +79,10 @@ export default function CustomOrderForm() {
 
     try {
       console.log('Submitting form data:', formData);
+
+      // Convert all files to base64
+      const imagePromises = selectedFiles.map(file => fileToBase64(file));
+      const base64Images = await Promise.all(imagePromises);
 
       // Remove double slash from URL
       const baseUrl = import.meta.env.MODE === 'production'
@@ -90,7 +103,7 @@ export default function CustomOrderForm() {
           email: formData.email,
           phone: formData.phone,
           description: formData.description,
-          images: selectedFiles.map(file => URL.createObjectURL(file))
+          images: base64Images
         }),
       });
 

@@ -38,11 +38,17 @@ export async function sendOrderNotification(message, images = []) {
 
     // Send images if any
     if (images && images.length > 0) {
-      console.log('Sending images to Telegram:', images);
+      console.log(`Sending ${images.length} images to Telegram`);
       const photoUrl = `https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendPhoto`;
       
-      for (const imageUrl of images) {
+      for (const base64Image of images) {
         try {
+          // Skip if not a valid base64 image
+          if (!base64Image || !base64Image.startsWith('data:image')) {
+            console.warn('Invalid image data:', base64Image?.substring(0, 50));
+            continue;
+          }
+
           const photoResponse = await fetch(photoUrl, {
             method: 'POST',
             headers: {
@@ -50,7 +56,7 @@ export async function sendOrderNotification(message, images = []) {
             },
             body: JSON.stringify({
               chat_id: process.env.TELEGRAM_CHAT_ID,
-              photo: imageUrl
+              photo: base64Image
             })
           });
 
