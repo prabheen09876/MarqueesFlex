@@ -5,9 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "concurrently \"vite\" \"node server/index.js\"",
-    "build": "vite build && npm run build:server",
-    "build:server": "mkdir -p dist/server && cp -r server dist/",
-    "start": "node dist/server/index.js",
+    "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview"
   },
@@ -22,7 +20,7 @@
     "lenis": "^1.1.16",
     "lucide-react": "^0.344.0",
     "multer": "^1.4.5-lts.1",
-    "node-telegram-bot-api": "^0.66.0",
+    "node-fetch": "^3.3.2",
     "nodemailer": "^6.9.16",
     "puppeteer": "^19.7.0",
     "qrcode-terminal": "^0.12.0",

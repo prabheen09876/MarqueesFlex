@@ -1,7 +1,6 @@
-import TelegramBot from 'node-telegram-bot-api';
+import fetch from 'node-fetch';
 
-// Create a bot instance
-const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN, { polling: false });
+// Removed the bot instance creation as it's no longer needed
 
 /**
  * Send order notification to admin via Telegram
@@ -13,24 +12,53 @@ export async function sendOrderNotification(message, images = []) {
       return;
     }
 
-    // Send the text message
-    await bot.sendMessage(process.env.TELEGRAM_CHAT_ID, message, { 
-      parse_mode: 'HTML',
-      disable_web_page_preview: true
+    // Send text message
+    const telegramUrl = `https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`;
+    const messageResponse = await fetch(telegramUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        chat_id: process.env.TELEGRAM_CHAT_ID,
+        text: message,
+        parse_mode: 'HTML',
+        disable_web_page_preview: true
+      })
     });
 
-    // If there are image URLs, send them
+    if (!messageResponse.ok) {
+      const error = await messageResponse.text();
+      console.error('Telegram API error:', error);
+    }
+
+    // Send images if any
     if (images && images.length > 0) {
+      const photoUrl = `https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendPhoto`;
+      
       for (const imageUrl of images) {
         try {
-          await bot.sendPhoto(process.env.TELEGRAM_CHAT_ID, imageUrl);
+          const photoResponse = await fetch(photoUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              chat_id: process.env.TELEGRAM_CHAT_ID,
+              photo: imageUrl
+            })
+          });
+
+          if (!photoResponse.ok) {
+            const error = await photoResponse.text();
+            console.error('Error sending image to Telegram:', error);
+          }
         } catch (imageError) {
-          console.error('Error sending image to Telegram:', imageError);
+          console.error('Error sending image:', imageError);
         }
       }
     }
   } catch (error) {
     console.error('Error sending Telegram notification:', error);
-    // Don't throw the error to prevent order processing from failing
   }
 }
