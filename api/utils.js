@@ -6,14 +6,16 @@ import fetch from 'node-fetch';
  * Send order notification to admin via Telegram
  */
 export async function sendOrderNotification(message, images = []) {
-  try {
-    if (!process.env.TELEGRAM_BOT_TOKEN || !process.env.TELEGRAM_CHAT_ID) {
-      console.error('Telegram configuration missing');
-      return;
-    }
+  if (!process.env.TELEGRAM_BOT_TOKEN || !process.env.TELEGRAM_CHAT_ID) {
+    console.error('Telegram configuration missing');
+    throw new Error('Telegram configuration missing');
+  }
 
+  try {
     // Send text message
     const telegramUrl = `https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`;
+    console.log('Sending message to Telegram:', message);
+    
     const messageResponse = await fetch(telegramUrl, {
       method: 'POST',
       headers: {
@@ -27,13 +29,16 @@ export async function sendOrderNotification(message, images = []) {
       })
     });
 
+    const messageResult = await messageResponse.json();
+    console.log('Telegram message response:', messageResult);
+
     if (!messageResponse.ok) {
-      const error = await messageResponse.text();
-      console.error('Telegram API error:', error);
+      throw new Error(`Telegram API error: ${JSON.stringify(messageResult)}`);
     }
 
     // Send images if any
     if (images && images.length > 0) {
+      console.log('Sending images to Telegram:', images);
       const photoUrl = `https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendPhoto`;
       
       for (const imageUrl of images) {
@@ -49,9 +54,11 @@ export async function sendOrderNotification(message, images = []) {
             })
           });
 
+          const photoResult = await photoResponse.json();
+          console.log('Telegram photo response:', photoResult);
+
           if (!photoResponse.ok) {
-            const error = await photoResponse.text();
-            console.error('Error sending image to Telegram:', error);
+            console.error('Error sending image to Telegram:', photoResult);
           }
         } catch (imageError) {
           console.error('Error sending image:', imageError);
@@ -60,5 +67,6 @@ export async function sendOrderNotification(message, images = []) {
     }
   } catch (error) {
     console.error('Error sending Telegram notification:', error);
+    throw error;
   }
 }

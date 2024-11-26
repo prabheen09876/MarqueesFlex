@@ -69,7 +69,15 @@ export default function CustomOrderForm() {
     setSuccess('');
 
     try {
-      const response = await fetch(`${import.meta.env.MODE === 'production' ? import.meta.env.VITE_API_URL || '' : ''}/api/orders/custom`, {
+      console.log('Submitting form data:', formData);
+
+      const apiUrl = import.meta.env.MODE === 'production'
+        ? `${import.meta.env.VITE_API_URL}/api/orders/custom`
+        : '/api/orders/custom';
+
+      console.log('API URL:', apiUrl);
+
+      const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Accept': 'application/json',
@@ -80,50 +88,31 @@ export default function CustomOrderForm() {
           email: formData.email,
           phone: formData.phone,
           description: formData.description,
-          images: selectedFiles
+          images: selectedFiles.map(file => URL.createObjectURL(file))
         }),
       });
 
+      console.log('Response status:', response.status);
+      const data = await response.json();
+      console.log('Response data:', data);
+
       if (!response.ok) {
-        const responseClone = response.clone();
-        try {
-          const errorData = await response.json();
-          console.error('Error response:', errorData);
-          throw new Error(errorData.error || 'Failed to submit order');
-        } catch (jsonError) {
-          // If JSON parsing fails, try to get the text content
-          const textError = await responseClone.text();
-          console.error('Error response text:', textError);
-          throw new Error('Server error. Please try again later.');
-        }
+        throw new Error(data.error || data.details || 'Failed to submit order');
       }
 
-      try {
-        const data = await response.json();
-        console.log('Order submitted successfully:', data);
-        
-        // Clear form
-        setFormData({
-          name: '',
-          email: '',
-          phone: '',
-          description: '',
-          images: [],
-        });
-        setSelectedFiles([]);
-        setPreviewUrls(prev => {
-          // Revoke all URLs
-          prev.forEach(url => URL.revokeObjectURL(url));
-          return [];
-        });
-        setSuccess('Order submitted successfully! We will contact you soon.');
-      } catch (jsonError) {
-        console.error('Error parsing JSON response:', jsonError);
-        setError('Failed to submit order. Please try again.');
-      }
-    } catch (err) {
-      console.error('Error submitting form:', err);
-      setError(err.message || 'Failed to submit order. Please try again.');
+      // Clear form
+      setFormData({
+        name: '',
+        email: '',
+        phone: '',
+        description: '',
+        images: [],
+      });
+      setSelectedFiles([]);
+      setSuccess('Order submitted successfully!');
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      setError(error instanceof Error ? error.message : 'Failed to submit order');
     } finally {
       setIsSubmitting(false);
     }
