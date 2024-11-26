@@ -1,5 +1,4 @@
-import { sendOrderNotification } from '../../server/utils/telegram.js';
-import { getDb } from '../../server/database.js';
+import { sendOrderNotification } from '../utils.js';
 
 export default async function handler(req, res) {
   console.log('Starting custom order handler');
@@ -40,16 +39,8 @@ export default async function handler(req, res) {
       });
     }
 
-    // Insert order into database
-    const db = await getDb();
-    const result = await db.run(
-      `INSERT INTO orders (name, email, phone, description, status, images, type) 
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [name, email, phone, description, 'pending', JSON.stringify(images), 'custom']
-    );
-
     const order = {
-      id: result.lastID,
+      id: Date.now(),
       name,
       email,
       phone,
@@ -96,7 +87,7 @@ ${description}
     });
     
     return res.status(500).json({ 
-      error: 'Failed to create custom order',
+      error: error.message || 'Failed to create custom order',
       details: error.message,
       stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });

@@ -71,9 +71,11 @@ export default function CustomOrderForm() {
     try {
       console.log('Submitting form data:', formData);
 
-      const apiUrl = import.meta.env.MODE === 'production'
-        ? `${import.meta.env.VITE_API_URL}/api/orders/custom`
-        : '/api/orders/custom';
+      // Remove double slash from URL
+      const baseUrl = import.meta.env.MODE === 'production'
+        ? import.meta.env.VITE_API_URL?.replace(/\/+$/, '') || ''
+        : '';
+      const apiUrl = `${baseUrl}/api/orders/custom`;
 
       console.log('API URL:', apiUrl);
 
@@ -97,7 +99,8 @@ export default function CustomOrderForm() {
       console.log('Response data:', data);
 
       if (!response.ok) {
-        throw new Error(data.error || data.details || 'Failed to submit order');
+        const errorMessage = data.error || (typeof data === 'object' ? JSON.stringify(data) : 'Failed to submit order');
+        throw new Error(errorMessage);
       }
 
       // Clear form
