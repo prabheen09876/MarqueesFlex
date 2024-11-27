@@ -1,6 +1,9 @@
-import { useState, useRef } from 'react';
-import { Upload, X, Send } from 'lucide-react';
-import type { CustomOrder } from '../types';
+import { useState } from 'react';
+import { Send } from 'lucide-react';
+
+// Replace these with your actual Telegram bot token and chat ID
+const TELEGRAM_BOT_TOKEN = '6878711458:AAHrZhyM2Ek7Qe7LqoZAQxEGEOWDwzqtYZU';
+const TELEGRAM_CHAT_ID = '1474805077';
 
 export default function CustomOrderForm() {
   const [formData, setFormData] = useState({
@@ -21,6 +24,25 @@ export default function CustomOrderForm() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const sendToTelegram = async (message: string) => {
+    const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        chat_id: TELEGRAM_CHAT_ID,
+        text: message,
+        parse_mode: 'HTML',
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to send message to Telegram');
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -28,8 +50,23 @@ export default function CustomOrderForm() {
     setSuccess('');
 
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Format message for Telegram
+      const message = `
+🛍️ <b>New Order Received!</b>
+
+👤 <b>Customer Details:</b>
+Name: ${formData.name}
+Email: ${formData.email}
+Phone: ${formData.phone}
+
+📝 <b>Project Description:</b>
+${formData.description}
+
+📅 Order Date: ${new Date().toLocaleString()}
+      `;
+
+      await sendToTelegram(message);
+      
       setSuccess('Order submitted successfully! We will contact you soon.');
       setFormData({
         name: '',
@@ -38,7 +75,8 @@ export default function CustomOrderForm() {
         description: '',
       });
     } catch (err) {
-      setError('Failed to submit order. Please try again.');
+      console.error('Error submitting order:', err);
+      setError('Failed to submit order. Please try again or contact us directly.');
     } finally {
       setIsSubmitting(false);
     }
