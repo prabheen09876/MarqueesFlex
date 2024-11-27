@@ -4,7 +4,7 @@ export interface Product {
   description: string;
   price: number;
   image: string;
-  category: 'banner' | 'neon' | 'frame' | 'flex';
+  category: 'banner' | 'neon' | 'frame' | 'flex' | 'anime' | 'aesthetic' | 'cars';
 }
 
 export interface CartItem extends Product {

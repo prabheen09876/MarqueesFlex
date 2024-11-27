@@ -1,11 +1,13 @@
 import { Routes, Route } from 'react-router-dom';
 import StoreFront from './pages/StoreFront';
 import Navbar from './components/Navbar';
+import Loading from './components/Loading';
 import { useState, useEffect } from 'react';
 import Lenis from '@studio-freight/lenis';
 
 function App() {
   const [cartCount, setCartCount] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const lenis = new Lenis({
@@ -25,10 +27,20 @@ function App() {
 
     requestAnimationFrame(raf);
 
+    // Simulate loading time
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 2000);
+
     return () => {
       lenis.destroy();
+      clearTimeout(timer);
     };
   }, []);
+
+  if (isLoading) {
+    return <Loading />;
+  }
 
   return (
     <div className="min-h-screen">

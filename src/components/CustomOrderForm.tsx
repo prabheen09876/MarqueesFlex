@@ -2,84 +2,23 @@ import { useState, useRef } from 'react';
 import { Upload, X, Send } from 'lucide-react';
 import type { CustomOrder } from '../types';
 
-const MAX_FILES = 5;
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
-
 export default function CustomOrderForm() {
-  const [formData, setFormData] = useState<Partial<CustomOrder>>({
+  const [formData, setFormData] = useState({
     name: '',
     email: '',
     phone: '',
     description: '',
-    images: [],
   });
-  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
-  const [previewUrls, setPreviewUrls] = useState<string[]>([]);
-  const [error, setError] = useState<string>('');
-  const [success, setSuccess] = useState<string>('');
+
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
-    setFormData((prev) => ({
-      ...prev,
-      [e.target.name]: e.target.value,
-    }));
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
-    
-    if (files.length + previewUrls.length > MAX_FILES) {
-      setError(`Maximum ${MAX_FILES} files allowed`);
-      return;
-    }
-
-    const invalidFile = files.find(file => file.size > MAX_FILE_SIZE);
-    if (invalidFile) {
-      setError('Files must be less than 5MB');
-      return;
-    }
-
-    setError('');
-    
-    // Store selected files
-    setSelectedFiles(prev => [...prev, ...files]);
-    
-    // Create preview URLs for the new files
-    const newPreviewUrls = files.map(file => URL.createObjectURL(file));
-    setPreviewUrls(prev => [...prev, ...newPreviewUrls]);
-  };
-
-  const removeFile = (index: number) => {
-    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
-    setPreviewUrls(prev => {
-      // Revoke the URL to prevent memory leaks
-      URL.revokeObjectURL(prev[index]);
-      return prev.filter((_, i) => i !== index);
-    });
-  };
-
-  const fileToBase64 = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => {
-        if (typeof reader.result === 'string') {
-          // Validate that it's an image
-          if (!reader.result.startsWith('data:image/')) {
-            reject(new Error('Invalid image format'));
-            return;
-          }
-          resolve(reader.result);
-        } else {
-          reject(new Error('Failed to read file'));
-        }
-      };
-      reader.onerror = error => reject(error);
-    });
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -89,205 +28,113 @@ export default function CustomOrderForm() {
     setSuccess('');
 
     try {
-      if (!formData.name || !formData.email || !formData.phone || !formData.description) {
-        throw new Error('Please fill in all required fields');
-      }
-
-      console.log('Converting images to base64...');
-      const base64Images = await Promise.all(
-        selectedFiles.map(async (file) => {
-          try {
-            return await fileToBase64(file);
-          } catch (error) {
-            console.error('Error converting file to base64:', error);
-            return null;
-          }
-        })
-      );
-
-      // Filter out any failed conversions
-      const validImages = base64Images.filter((img): img is string => img !== null);
-      console.log(`Successfully converted ${validImages.length} images`);
-
-      // Remove double slash from URL
-      const baseUrl = import.meta.env.MODE === 'production'
-        ? import.meta.env.VITE_API_URL?.replace(/\/+$/, '') || ''
-        : '';
-      const apiUrl = `${baseUrl}/api/orders/custom`;
-
-      console.log('Sending request to:', apiUrl);
-
-      const requestBody = {
-        name: formData.name,
-        email: formData.email,
-        phone: formData.phone,
-        description: formData.description,
-        images: validImages
-      };
-
-      console.log('Sending request with images:', validImages.length);
-
-      const response = await fetch(apiUrl, {
-        method: 'POST',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestBody)
-      });
-
-      console.log('Response status:', response.status);
-      const data = await response.json();
-      console.log('Response data:', data);
-
-      if (!response.ok) {
-        const errorMessage = data.error || (typeof data === 'object' ? JSON.stringify(data) : 'Failed to submit order');
-        throw new Error(errorMessage);
-      }
-
-      // Clear form
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      setSuccess('Order submitted successfully! We will contact you soon.');
       setFormData({
         name: '',
         email: '',
         phone: '',
         description: '',
-        images: [],
       });
-      setSelectedFiles([]);
-      setPreviewUrls(prev => {
-        prev.forEach(url => URL.revokeObjectURL(url));
-        return [];
-      });
-      setSuccess('Order submitted successfully!');
-    } catch (error) {
-      console.error('Error submitting form:', error);
-      setError(error instanceof Error ? error.message : 'Failed to submit order');
+    } catch (err) {
+      setError('Failed to submit order. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="custom-order-form">
-      <h2>Custom Order Form</h2>
-      
-      {error && <div className="error-message">{error}</div>}
-      {success && <div className="success-message">{success}</div>}
+    <form onSubmit={handleSubmit} className="max-w-2xl mx-auto space-y-6 animate-fadeIn opacity-100">
+      {error && (
+        <div className="bg-red-50 text-red-500 p-4 rounded-lg animate-fadeIn">
+          {error}
+        </div>
+      )}
+      {success && (
+        <div className="bg-green-50 text-green-500 p-4 rounded-lg animate-fadeIn">
+          {success}
+        </div>
+      )}
 
-      <div className="form-fields">
-        <div>
-          <label htmlFor="name" className="label">
-            Full Name *
-          </label>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="space-y-2 transition-all duration-300 hover:translate-x-1">
+          <label className="block text-sm font-medium text-gray-700">Full Name *</label>
           <input
             type="text"
             id="name"
             name="name"
             value={formData.name}
             onChange={handleInputChange}
-            className="input-field"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300"
             required
           />
         </div>
 
-        <div>
-          <label htmlFor="email" className="label">
-            Email *
-          </label>
+        <div className="space-y-2 transition-all duration-300 hover:translate-x-1">
+          <label className="block text-sm font-medium text-gray-700">Email *</label>
           <input
             type="email"
             id="email"
             name="email"
             value={formData.email}
             onChange={handleInputChange}
-            className="input-field"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300"
             required
           />
-        </div>
-
-        <div>
-          <label htmlFor="phone" className="label">
-            Phone Number *
-          </label>
-          <input
-            type="tel"
-            id="phone"
-            name="phone"
-            value={formData.phone}
-            onChange={handleInputChange}
-            className="input-field"
-            required
-            placeholder="+91 0000000000"
-          />
-        </div>
-
-        <div>
-          <label htmlFor="description" className="label">
-            Project Description *
-          </label>
-          <textarea
-            id="description"
-            name="description"
-            value={formData.description}
-            onChange={handleInputChange}
-            rows={4}
-            className="input-field"
-            required
-            placeholder="Please describe your project requirements..."
-          />
-        </div>
-
-        <div className="file-upload-section">
-          <label className="label">Upload Images (Max 5 files, 5MB each)</label>
-          <div 
-            className="file-drop-zone"
-            onClick={() => fileInputRef.current?.click()}
-          >
-            <input
-              type="file"
-              ref={fileInputRef}
-              onChange={handleFileChange}
-              accept="image/*"
-              multiple
-              style={{ display: 'none' }}
-            />
-            <Upload className="upload-icon" />
-            <span>Click to upload images</span>
-          </div>
-
-          {previewUrls.length > 0 && (
-            <div className="preview-container">
-              {previewUrls.map((url, index) => (
-                <div key={url} className="preview-item">
-                  <img src={url} alt={`Preview ${index + 1}`} />
-                  <button
-                    type="button"
-                    onClick={() => removeFile(index)}
-                    className="remove-button"
-                  >
-                    <X size={16} />
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
         </div>
       </div>
 
-      <button
-        type="submit"
-        className="submit-button"
-        disabled={isSubmitting}
-      >
-        {isSubmitting ? (
-          'Submitting...'
-        ) : (
-          <>
-            <Send size={20} />
-            Submit Order
-          </>
-        )}
-      </button>
+      <div className="space-y-2 transition-all duration-300 hover:translate-x-1">
+        <label className="block text-sm font-medium text-gray-700">Phone Number *</label>
+        <input
+          type="tel"
+          id="phone"
+          name="phone"
+          value={formData.phone}
+          onChange={handleInputChange}
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300"
+          required
+          placeholder="+91 0000000000"
+        />
+      </div>
+
+      <div className="space-y-2 transition-all duration-300 hover:translate-y-1">
+        <label className="block text-sm font-medium text-gray-700">Project Description *</label>
+        <textarea
+          id="description"
+          name="description"
+          value={formData.description}
+          onChange={handleInputChange}
+          rows={4}
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300"
+          required
+          placeholder="Please describe your project requirements..."
+        />
+      </div>
+
+      <div className="flex justify-center">
+        <button
+          type="submit"
+          className="px-8 py-3 bg-[#0A3981] text-white rounded-lg font-semibold transform transition-all duration-300 hover:bg-[#1F509A] hover:scale-105 hover:shadow-lg active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? (
+            <span className="inline-flex items-center">
+              <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              Submitting...
+            </span>
+          ) : (
+            <span className="inline-flex items-center space-x-2 group">
+              <Send className="h-5 w-5 transform transition-transform group-hover:translate-x-1" />
+              <span>Submit Order</span>
+            </span>
+          )}
+        </button>
+      </div>
     </form>
   );
 }

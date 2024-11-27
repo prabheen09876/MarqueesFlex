@@ -1,10 +1,22 @@
 import { useState } from 'react';
+import { useScrollAnimation } from '../hooks/useScrollAnimation';
 import ProductCard from '../components/ProductCard';
 import Cart from '../components/Cart';
 import CustomOrderForm from '../components/CustomOrderForm';
+import CategorySection from '../components/CategorySection';
 import type { Product, CartItem } from '../types';
 import { Sparkles, MessageSquare } from 'lucide-react';
 import FlexBannerImage from '../assets/AD.png';
+import GlowBoardImage from '../assets/glowboard.png';
+import GlowBoard1Image from '../assets/glowboard1.png';
+import GlowBoard2Image from '../assets/glowboard2.png';
+import GlowSignImage from '../assets/glowsign.png';
+import LightFrameImage from '../assets/lightframe.png';
+import NeonSignImage from '../assets/neonsign.png';
+import LetterBoardImage from '../assets/3dletterboard.png';
+import FlexBoardImage from '../assets/flexboard.png';
+import StandBannerImage from '../assets/standbanner.png';
+import PosterImage from '../assets/poster1.png';
 
 const products: Product[] = [
   {
@@ -31,7 +43,57 @@ const products: Product[] = [
     image: 'https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?auto=format&fit=crop&q=80&w=800',
     category: 'frame'
   },
-
+  // New Anime Products
+  {
+    id: '4',
+    name: 'Naruto LED Frame',
+    description: 'Custom LED frame featuring Naruto characters',
+    price: 199.99,
+    image: 'https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&q=80&w=800',
+    category: 'anime'
+  },
+  {
+    id: '5',
+    name: 'Dragon Ball Z Frame',
+    description: 'Illuminated frame with Dragon Ball Z artwork',
+    price: 189.99,
+    image: 'https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&q=80&w=800',
+    category: 'anime'
+  },
+  // Aesthetic Products
+  {
+    id: '6',
+    name: 'Vaporwave Aesthetic Frame',
+    description: 'Retro vaporwave style LED frame',
+    price: 169.99,
+    image: 'https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&q=80&w=800',
+    category: 'aesthetic'
+  },
+  {
+    id: '7',
+    name: 'Minimalist LED Design',
+    description: 'Clean, minimalist LED frame design',
+    price: 159.99,
+    image: 'https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&q=80&w=800',
+    category: 'aesthetic'
+  },
+  // Car Products
+  {
+    id: '8',
+    name: 'Sports Car Frame',
+    description: 'LED frame featuring luxury sports cars',
+    price: 179.99,
+    image: 'https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&q=80&w=800',
+    category: 'cars'
+  },
+  {
+    id: '9',
+    name: 'Classic Cars Collection',
+    description: 'Vintage and classic cars LED frame collection',
+    price: 189.99,
+    image: 'https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&q=80&w=800',
+    category: 'cars'
+  }
 ];
 
 const categories = [
@@ -39,7 +101,7 @@ const categories = [
     id: '1',
     name: 'Neon Signs',
     description: 'Custom-made neon signs for businesses and homes',
-    image: 'https://plus.unsplash.com/premium_photo-1673601435829-42d9bf5414b3?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mjl8fG5lb24lMjBsaWdodHxlbnwwfHwwfHx8MA%3D%3D'
+    image: NeonSignImage
   },
   {
     id: '2',
@@ -49,9 +111,39 @@ const categories = [
   },
   {
     id: '3',
-    name: 'LED Photo Frames',
-    description: 'Illuminated photo frames for a unique display',
-    image: 'https://i.pinimg.com/736x/63/4c/c1/634cc1e3914901728d06d9479bc1552c.jpg'
+    name: 'Glow Boards',
+    description: 'Illuminated display boards with stunning visual effects',
+    image: GlowBoardImage
+  },
+  {
+    id: '4',
+    name: 'Light Frames',
+    description: 'Modern LED frames for eye-catching displays',
+    image: LightFrameImage
+  },
+  {
+    id: '5',
+    name: '3D Letter Boards',
+    description: 'Three-dimensional letter boards for impactful signage',
+    image: LetterBoardImage
+  },
+  {
+    id: '6',
+    name: 'Stand Banners',
+    description: 'Portable stand banners perfect for events and exhibitions',
+    image: StandBannerImage
+  },
+  {
+    id: '7',
+    name: 'Premium Posters',
+    description: 'High-resolution posters for promotional and decorative use',
+    image: PosterImage
+  },
+  {
+    id: '8',
+    name: 'Glow Signs',
+    description: 'Vibrant glow signs for businesses and events',
+    image: GlowSignImage
   }
 ];
 
@@ -77,6 +169,11 @@ const features = [
 ];
 
 export default function StoreFront() {
+  const heroRef = useScrollAnimation();
+  const categoriesRef = useScrollAnimation();
+  const featuresRef = useScrollAnimation();
+  const productsRef = useScrollAnimation();
+  const customOrderRef = useScrollAnimation();
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
 
@@ -113,40 +210,48 @@ export default function StoreFront() {
 
   return (
     <div className="container mx-auto px-4">
-      <section className="text-center py-12">
-        <h1 className="text-6xl font-bold mb-4 text-heading ">
+      <section ref={heroRef as any} className="text-center py-12 opacity-0 animate-blurIn">
+        <h1 className="text-6xl font-bold mb-4 text-heading animate-float">
           Custom LED Frames & Neon Signs
         </h1>
-        <p className="text-xl mb-8 text-body max-w-2xl mx-auto">
+        <p className="text-xl mb-8 text-body max-w-2xl mx-auto animate-fadeIn" style={{ animationDelay: '0.3s' }}>
           Transform your space with our custom-made LED signs. Perfect for businesses, events, or personal decor.
         </p>
         <a
           href="#custom"
-          className="btn-primary inline-flex items-center space-x-2"
+          className="btn-primary inline-flex items-center space-x-2 animate-pulse hover:animate-none"
         >
           <MessageSquare className="h-5 w-5" />
           <span>Start Your Custom Order</span>
         </a>
       </section>
 
-      <section className="py-12">
-        <h2 className="text-3xl font-bold mb-8 text-heading text-center">
+      <section ref={categoriesRef as any} className="py-12">
+        <h2 className="text-3xl font-bold mb-8 text-heading text-center animate-fadeIn">
           Popular Categories
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {categories.map((category) => (
-            <div key={category.id} className="card group cursor-pointer">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {categories.map((category, index) => (
+            <div 
+              key={category.id} 
+              className="card group cursor-pointer hover:shadow-lg transition-all duration-500"
+              style={{ 
+                animation: `fadeIn 0.8s ease-out forwards`,
+                animationDelay: `${index * 0.2}s`
+              }}
+            >
               <div className="aspect-w-16 aspect-h-9 mb-4 rounded-lg overflow-hidden">
                 <img
                   src={category.image}
                   alt={category.name}
-                  className="object-cover transform group-hover:scale-105 transition-transform duration-200"
+                  className="object-cover transform transition-all duration-500 group-hover:scale-110"
                 />
+                <div className="absolute inset-0 bg-black opacity-0 transition-opacity duration-300 group-hover:opacity-10" />
               </div>
-              <h3 className="text-xl font-semibold mb-2 text-heading">
+              <h3 className="text-xl font-semibold mb-2 text-heading transition-transform duration-300 group-hover:translate-x-2">
                 {category.name}
               </h3>
-              <p className="text-body">
+              <p className="text-body text-sm transition-all duration-300 group-hover:text-primary">
                 {category.description}
               </p>
             </div>
@@ -154,20 +259,27 @@ export default function StoreFront() {
         </div>
       </section>
 
-      <section className="py-12">
-        <h2 className="text-3xl font-bold mb-8 text-heading text-center">
+      <section ref={featuresRef as any} className="py-12 opacity-0 animate-blurIn">
+        <h2 className="text-3xl font-bold mb-8 text-heading text-center animate-rotateIn">
           Why Choose Us?
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {features.map((feature) => (
-            <div key={feature.id} className="card text-center">
-              <div className="inline-block p-3 rounded-full mb-4" style={{ backgroundColor: 'var(--background-primary)' }}>
+          {features.map((feature, index) => (
+            <div 
+              key={feature.id} 
+              className="card text-center opacity-0"
+              style={{ 
+                animation: `scaleUp 0.8s ease-out forwards`,
+                animationDelay: `${index * 0.3}s`
+              }}
+            >
+              <div className="inline-block p-3 rounded-full mb-4 animate-float" style={{ backgroundColor: 'var(--background-primary)' }}>
                 {feature.icon()}
               </div>
-              <h3 className="text-xl font-semibold mb-2 text-heading">
+              <h3 className="text-xl font-semibold mb-2 text-heading transition-all duration-300 hover:text-primary">
                 {feature.title}
               </h3>
-              <p className="text-body">
+              <p className="text-body transition-all duration-300 group-hover:text-opacity-80">
                 {feature.description}
               </p>
             </div>
@@ -175,23 +287,50 @@ export default function StoreFront() {
         </div>
       </section>
 
-      <section id="products" className="py-12">
-        <h2 className="text-3xl font-bold mb-8 text-heading text-center">
+      <section ref={productsRef as any} id="products" className="py-12 opacity-0 animate-slideLeft">
+        <h2 className="text-3xl font-bold mb-8 text-heading text-center animate-float">
+          Featured Collections
+        </h2>
+        
+        <CategorySection
+          title="Anime Collection"
+          products={products.filter(p => p.category === 'anime')}
+          onAddToCart={addToCart}
+        />
+        
+        <CategorySection
+          title="Aesthetic Collection"
+          products={products.filter(p => p.category === 'aesthetic')}
+          onAddToCart={addToCart}
+        />
+        
+        <CategorySection
+          title="Car Collection"
+          products={products.filter(p => p.category === 'cars')}
+          onAddToCart={addToCart}
+        />
+
+        <h2 className="text-3xl font-bold my-8 text-heading text-center">
           Our Products
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {products.map((product) => (
-            <ProductCard
+          {products.filter(p => ['neon', 'banner', 'frame', 'flex'].includes(p.category)).map((product, index) => (
+            <div 
               key={product.id}
-              product={product}
-              onAddToCart={addToCart}
-            />
+              className="opacity-0"
+              style={{ animation: `scaleUp 0.5s ease-out forwards ${index * 0.1}s` }}
+            >
+              <ProductCard
+                product={product}
+                onAddToCart={addToCart}
+              />
+            </div>
           ))}
         </div>
       </section>
 
-      <section id="custom" className="py-12">
-        <h2 className="text-3xl font-bold mb-8 text-heading text-center">
+      <section ref={customOrderRef as any} id="custom" className="py-12">
+        <h2 className="text-3xl font-bold mb-8 text-heading text-center animate-fadeIn">
           Custom Order
         </h2>
         <CustomOrderForm />
