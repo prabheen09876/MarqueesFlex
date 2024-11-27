@@ -220,9 +220,17 @@ export default function StoreFront() {
         <button
           onClick={() => {
             const element = document.getElementById('custom');
-            element?.scrollIntoView({ behavior: 'smooth' });
+            if (element) {
+              element.scrollIntoView({ behavior: 'smooth' });
+            } else {
+              // Fallback to scrolling to the bottom of the page
+              window.scrollTo({
+                top: document.documentElement.scrollHeight,
+                behavior: 'smooth'
+              });
+            }
           }}
-          className="bg-[#0A3981] text-white px-6 py-3 rounded-lg font-semibold inline-flex items-center space-x-2 hover:bg-[#1F509A] transform transition-all duration-300 hover:scale-105 hover:shadow-lg"
+          className="bg-[#0A3981] text-white px-6 py-3 rounded-lg font-semibold inline-flex items-center space-x-2 hover:bg-[#1F509A] transform transition-all duration-300 hover:scale-105 hover:shadow-lg active:scale-95"
         >
           <MessageSquare className="h-5 w-5" />
           <span>Start Your Custom Order</span>
