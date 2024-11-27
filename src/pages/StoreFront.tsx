@@ -210,20 +210,23 @@ export default function StoreFront() {
 
   return (
     <div className="container mx-auto px-4">
-      <section ref={heroRef as any} className="text-center py-12 opacity-0 animate-blurIn">
+      <section ref={heroRef as any} className="text-center py-12 animate-blurIn">
         <h1 className="text-6xl font-bold mb-4 text-heading animate-float">
           Custom LED Frames & Neon Signs
         </h1>
         <p className="text-xl mb-8 text-body max-w-2xl mx-auto animate-fadeIn" style={{ animationDelay: '0.3s' }}>
           Transform your space with our custom-made LED signs. Perfect for businesses, events, or personal decor.
         </p>
-        <a
-          href="#custom"
-          className="btn-primary inline-flex items-center space-x-2 animate-pulse hover:animate-none"
+        <button
+          onClick={() => {
+            const element = document.getElementById('custom');
+            element?.scrollIntoView({ behavior: 'smooth' });
+          }}
+          className="bg-[#0A3981] text-white px-6 py-3 rounded-lg font-semibold inline-flex items-center space-x-2 hover:bg-[#1F509A] transform transition-all duration-300 hover:scale-105 hover:shadow-lg"
         >
           <MessageSquare className="h-5 w-5" />
           <span>Start Your Custom Order</span>
-        </a>
+        </button>
       </section>
 
       <section ref={categoriesRef as any} className="py-12">
@@ -287,8 +290,8 @@ export default function StoreFront() {
         </div>
       </section>
 
-      <section ref={productsRef as any} id="products" className="py-12 opacity-0 animate-slideLeft">
-        <h2 className="text-3xl font-bold mb-8 text-heading text-center animate-float">
+      <section ref={productsRef as any} id="products" className="py-12">
+        <h2 className="text-3xl font-bold mb-8 text-heading text-center">
           Featured Collections
         </h2>
         
@@ -317,8 +320,8 @@ export default function StoreFront() {
           {products.filter(p => ['neon', 'banner', 'frame', 'flex'].includes(p.category)).map((product, index) => (
             <div 
               key={product.id}
-              className="opacity-0"
-              style={{ animation: `scaleUp 0.5s ease-out forwards ${index * 0.1}s` }}
+              className="transform transition-all duration-500"
+              style={{ animation: `fadeIn 0.5s ease-out forwards ${index * 0.1}s` }}
             >
               <ProductCard
                 product={product}
