@@ -208,10 +208,14 @@ export default function StoreFront() {
     setCartItems(items => items.filter(item => item.id !== id));
   };
 
+  function handleCustomOrder() {
+    console.log('Custom order button clicked');
+  }
+
   return (
     <div className="container mx-auto px-4">
-      <section ref={heroRef as any} className="text-center py-12 animate-blurIn">
-        <h1 className="text-6xl font-bold mb-4 text-heading animate-float">
+      <section ref={heroRef as any} className="text-center py-12">
+        <h1 className="text-6xl font-bold mb-4 text-heading">
           Custom LED Frames & Neon Signs
         </h1>
         <p className="text-xl mb-8 text-body max-w-2xl mx-auto animate-fadeIn" style={{ animationDelay: '0.3s' }}>
@@ -230,7 +234,7 @@ export default function StoreFront() {
               });
             }
           }}
-          className="bg-[#0A3981] text-white px-6 py-3 rounded-lg font-semibold inline-flex items-center space-x-2 hover:bg-[#1F509A] transform transition-all duration-300 hover:scale-105 hover:shadow-lg active:scale-95"
+          className="bg-[#0A3981] text-white px-6 py-3 rounded-lg font-semibold inline-flex items-center space-x-2 hover:bg-[#1F509A] transform transition-all duration-300 hover:scale-105 hover:shadow-lg active:scale-95 z-10"
         >
           <MessageSquare className="h-5 w-5" />
           <span>Start Your Custom Order</span>
@@ -243,10 +247,10 @@ export default function StoreFront() {
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {categories.map((category, index) => (
-            <div 
-              key={category.id} 
+            <div
+              key={category.id}
               className="card group cursor-pointer hover:shadow-lg transition-all duration-500"
-              style={{ 
+              style={{
                 animation: `fadeIn 0.8s ease-out forwards`,
                 animationDelay: `${index * 0.2}s`
               }}
@@ -276,10 +280,10 @@ export default function StoreFront() {
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {features.map((feature, index) => (
-            <div 
-              key={feature.id} 
+            <div
+              key={feature.id}
               className="card text-center transform transition-all duration-500"
-              style={{ 
+              style={{
                 animation: `fadeIn 0.8s ease-out forwards`,
                 animationDelay: `${index * 0.3}s`
               }}
@@ -302,19 +306,19 @@ export default function StoreFront() {
         <h2 className="text-3xl font-bold mb-8 text-heading text-center">
           Featured Collections
         </h2>
-        
+
         <CategorySection
           title="Anime Collection"
           products={products.filter(p => p.category === 'anime')}
           onAddToCart={addToCart}
         />
-        
+
         <CategorySection
           title="Aesthetic Collection"
           products={products.filter(p => p.category === 'aesthetic')}
           onAddToCart={addToCart}
         />
-        
+
         <CategorySection
           title="Car Collection"
           products={products.filter(p => p.category === 'cars')}
@@ -326,7 +330,7 @@ export default function StoreFront() {
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {products.filter(p => ['neon', 'banner', 'frame', 'flex'].includes(p.category)).map((product, index) => (
-            <div 
+            <div
               key={product.id}
               className="transform transition-all duration-500"
               style={{ animation: `fadeIn 0.5s ease-out forwards ${index * 0.1}s` }}

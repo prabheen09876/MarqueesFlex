@@ -11,12 +11,17 @@
 }
 
 @layer base {
- 
+
   body {
     @apply antialiased bg-[#D4EBF8] text-[#1F509A] pt-16 bg-noise;
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     @apply text-[#0A3981];
   }
 }
