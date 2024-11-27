@@ -1,8 +1,5 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
 
-const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '7885175271:AAFq14mUhtzxuweV_DCAHRmKYk3r1vPVKk8';
-const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID || '1157438477';
-
 export default async function handler(
   request: VercelRequest,
   response: VercelResponse,
@@ -10,6 +7,9 @@ export default async function handler(
   if (request.method !== 'POST') {
     return response.status(405).json({ message: 'Method not allowed' });
   }
+
+  const TELEGRAM_BOT_TOKEN = '7885175271:AAFq14mUhtzxuweV_DCAHRmKYk3r1vPVKk8';
+  const TELEGRAM_CHAT_ID = '1157438477';
 
   try {
     const { name, email, phone, description } = request.body;
@@ -47,22 +47,33 @@ ${description}
       }
     );
 
-    const telegramData = await telegramResponse.json();
+    try {
+      const telegramData = await telegramResponse.json();
+      
+      if (!telegramResponse.ok) {
+        console.error('Telegram API Error:', telegramData);
+        return response.status(500).json({ 
+          success: false,
+          message: 'Failed to send message to Telegram'
+        });
+      }
 
-    if (!telegramResponse.ok) {
-      console.error('Telegram API Error:', telegramData);
+      return response.status(200).json({ 
+        success: true,
+        message: 'Order submitted successfully' 
+      });
+    } catch (parseError) {
+      console.error('Error parsing Telegram response:', parseError);
       return response.status(500).json({ 
-        message: telegramData.description || 'Failed to send message to Telegram',
-        error: telegramData 
+        success: false,
+        message: 'Error processing Telegram response'
       });
     }
-
-    return response.status(200).json({ message: 'Order submitted successfully' });
   } catch (error) {
     console.error('Server error:', error);
     return response.status(500).json({ 
-      message: 'Internal server error',
-      error: error instanceof Error ? error.message : String(error)
+      success: false,
+      message: 'Internal server error'
     });
   }
 }

@@ -37,7 +37,7 @@ export default function CustomOrderForm() {
 
       const data = await response.json();
 
-      if (!response.ok) {
+      if (!response.ok || !data.success) {
         throw new Error(data.message || 'Failed to submit order');
       }
 
@@ -48,9 +48,9 @@ export default function CustomOrderForm() {
         phone: '',
         description: '',
       });
-    } catch (err: any) {
+    } catch (err) {
       console.error('Error submitting order:', err);
-      setError(err.message || 'Failed to submit order. Please try again or contact us directly.');
+      setError(err instanceof Error ? err.message : 'Failed to submit order. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
