@@ -1,6 +1,11 @@
 import { useState } from 'react';
 import { Send } from 'lucide-react';
 
+interface ApiResponse {
+  success: boolean;
+  message: string;
+}
+
 export default function CustomOrderForm() {
   const [formData, setFormData] = useState({
     name: '',
@@ -35,7 +40,13 @@ export default function CustomOrderForm() {
         body: JSON.stringify(formData),
       });
 
-      const data = await response.json();
+      let data: ApiResponse;
+      try {
+        data = await response.json();
+      } catch (parseError) {
+        console.error('Error parsing response:', parseError);
+        throw new Error('Failed to process server response');
+      }
 
       if (!response.ok || !data.success) {
         throw new Error(data.message || 'Failed to submit order');
