@@ -1,10 +1,6 @@
 import { useState } from 'react';
 import { Send } from 'lucide-react';
 
-// Replace with your actual Telegram bot token and chat ID
-const TELEGRAM_BOT_TOKEN = '6878711458:AAHrZhyM2Ek7Qe7LqoZAQxEGEOWDwzqtYZU';
-const TELEGRAM_CHAT_ID = '1474805077';
-
 export default function CustomOrderForm() {
   const [formData, setFormData] = useState({
     name: '',
@@ -24,34 +20,6 @@ export default function CustomOrderForm() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const sendToTelegram = async (message: string) => {
-    const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
-    try {
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          chat_id: TELEGRAM_CHAT_ID,
-          text: message,
-          parse_mode: 'HTML',
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error('Telegram API Error:', errorData);
-        throw new Error('Failed to send message to Telegram');
-      }
-
-      return await response.json();
-    } catch (error) {
-      console.error('Error sending to Telegram:', error);
-      throw error;
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -59,22 +27,20 @@ export default function CustomOrderForm() {
     setSuccess('');
 
     try {
-      const message = `
-🛍️ <b>New Order Received!</b>
+      const response = await fetch('/api/sendTelegram', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
 
-👤 <b>Customer Details:</b>
-Name: ${formData.name}
-Email: ${formData.email}
-Phone: ${formData.phone}
+      const data = await response.json();
 
-📝 <b>Project Description:</b>
-${formData.description}
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to submit order');
+      }
 
-📅 Order Date: ${new Date().toLocaleString()}
-      `;
-
-      await sendToTelegram(message);
-      
       setSuccess('Order submitted successfully! We will contact you soon.');
       setFormData({
         name: '',
@@ -82,9 +48,9 @@ ${formData.description}
         phone: '',
         description: '',
       });
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error submitting order:', err);
-      setError('Failed to submit order. Please try again or contact us directly.');
+      setError(err.message || 'Failed to submit order. Please try again or contact us directly.');
     } finally {
       setIsSubmitting(false);
     }
