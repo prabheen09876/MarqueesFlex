@@ -3,6 +3,18 @@ export const config = {
 };
 
 export default async function handler(req: Request) {
+  // Handle CORS preflight
+  if (req.method === 'OPTIONS') {
+    return new Response(null, {
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'POST',
+        'Access-Control-Allow-Headers': 'Content-Type',
+      },
+    });
+  }
+
+  // Handle actual request
   if (req.method !== 'POST') {
     return new Response(
       JSON.stringify({ success: false, message: 'Method not allowed' }),
@@ -10,25 +22,53 @@ export default async function handler(req: Request) {
         status: 405,
         headers: {
           'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
         },
       }
     );
   }
 
-  const TELEGRAM_BOT_TOKEN = '7885175271:AAFq14mUhtzxuweV_DCAHRmKYk3r1vPVKk8';
-  const TELEGRAM_CHAT_ID = '1157438477';
-
   try {
     const body = await req.json();
     const { name, email, phone, address, notes, items, total } = body;
 
+    // Validate required fields
     if (!name || !email || !phone || !address || !items || !total) {
       return new Response(
-        JSON.stringify({ success: false, message: 'Missing required fields' }),
+        JSON.stringify({ 
+          success: false, 
+          message: 'Missing required fields',
+          details: {
+            name: !name,
+            email: !email,
+            phone: !phone,
+            address: !address,
+            items: !items,
+            total: !total
+          }
+        }),
         {
           status: 400,
           headers: {
             'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*',
+          },
+        }
+      );
+    }
+
+    // Validate items array
+    if (!Array.isArray(items) || items.length === 0) {
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          message: 'Invalid or empty items array' 
+        }),
+        {
+          status: 400,
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*',
           },
         }
       );
@@ -56,6 +96,9 @@ ${itemsList}
 📅 Order Date: ${new Date().toLocaleString()}
     `;
 
+    const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '7885175271:AAFq14mUhtzxuweV_DCAHRmKYk3r1vPVKk8';
+    const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID || '1157438477';
+
     const telegramResponse = await fetch(
       `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`,
       {
@@ -79,11 +122,13 @@ ${itemsList}
         JSON.stringify({
           success: false,
           message: 'Failed to send order notification',
+          error: telegramData
         }),
         {
           status: 500,
           headers: {
             'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*',
           },
         }
       );
@@ -92,12 +137,13 @@ ${itemsList}
     return new Response(
       JSON.stringify({
         success: true,
-        message: 'Order placed successfully',
+        message: 'Order placed successfully'
       }),
       {
         status: 200,
         headers: {
           'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
         },
       }
     );
@@ -107,11 +153,13 @@ ${itemsList}
       JSON.stringify({
         success: false,
         message: 'Internal server error',
+        error: error instanceof Error ? error.message : 'Unknown error'
       }),
       {
         status: 500,
         headers: {
           'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
         },
       }
     );
