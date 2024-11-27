@@ -7,9 +7,10 @@ interface CheckoutFormProps {
   total: number;
   onSubmit: (formData: any) => void;
   onCancel: () => void;
+  isSubmitting: boolean;
 }
 
-export default function CheckoutForm({ items, total, onSubmit, onCancel }: CheckoutFormProps) {
+export default function CheckoutForm({ items, total, onSubmit, onCancel, isSubmitting }: CheckoutFormProps) {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -101,17 +102,19 @@ export default function CheckoutForm({ items, total, onSubmit, onCancel }: Check
 
         <div className="flex gap-4 mt-6">
           <button
-            type="submit"
-            className="btn-primary flex-1"
-          >
-            Place Order
-          </button>
-          <button
             type="button"
             onClick={onCancel}
-            className="px-6 py-3 bg-gray-200 text-gray-700 rounded-full font-medium hover:bg-gray-300 transition-all duration-300 hover:shadow-lg flex-1"
+            className="flex-1 px-4 py-2 border border-[#659287] text-[#659287] rounded-full hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
+            disabled={isSubmitting}
           >
-            Cancel
+            Back to Cart
+          </button>
+          <button
+            type="submit"
+            className="flex-1 px-4 py-2 bg-[#659287] text-white rounded-full hover:bg-[#B1C29E] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 hover:shadow-md"
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? 'Placing Order...' : 'Place Order'}
           </button>
         </div>
       </form>
