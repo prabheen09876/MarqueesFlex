@@ -1,6 +1,11 @@
 import { getDb } from '../../server/database.js';
 
+export const config = {
+  runtime: 'nodejs'
+};
+
 export default async function handler(req: any, res: any) {
+  // Add CORS headers
   res.setHeader('Access-Control-Allow-Credentials', true);
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
@@ -14,63 +19,59 @@ export default async function handler(req: any, res: any) {
     return;
   }
 
-  const db = await getDb();
+  try {
+    const db = await getDb();
 
-  switch (req.method) {
-    case 'GET':
-      try {
-        const products = await db.all('SELECT * FROM products');
-        res.status(200).json(products);
-      } catch (error) {
-        console.error('Error fetching products:', error);
-        res.status(500).json({ error: 'Failed to fetch products' });
-      }
-      break;
-
-    case 'POST':
-      try {
-        const { name, description, collection, imageUrl, price } = req.body;
-        
-        if (!name || !description || !collection || !imageUrl || !price) {
-          return res.status(400).json({ error: 'Missing required fields' });
+    switch (req.method) {
+      case 'GET':
+        try {
+          const products = await db.all('SELECT * FROM products ORDER BY created_at DESC');
+          return res.status(200).json(products);
+        } catch (error) {
+          console.error('Error fetching products:', error);
+          return res.status(500).json({ error: 'Failed to fetch products' });
         }
 
-        const result = await db.run(
-          `INSERT INTO products (name, description, collection, image_url, price)
-           VALUES (?, ?, ?, ?, ?)`,
-          [name, description, collection, imageUrl, price]
-        );
+      case 'POST':
+        try {
+          const { name, description, collection, imageUrl, price } = req.body;
+          
+          if (!name || !description || !collection || !imageUrl || price === undefined) {
+            return res.status(400).json({ error: 'Missing required fields' });
+          }
 
-        res.status(201).json({
-          id: result.lastID,
-          name,
-          description,
-          collection,
-          imageUrl,
-          price
-        });
-      } catch (error) {
-        console.error('Error creating product:', error);
-        res.status(500).json({ error: 'Failed to create product' });
-      }
-      break;
+          const result = await db.run(
+            `INSERT INTO products (name, description, collection, image_url, price)
+             VALUES (?, ?, ?, ?, ?)`,
+            [name, description, collection, imageUrl, price]
+          );
 
-    case 'DELETE':
-      try {
-        const productId = req.query.id;
-        if (!productId) {
-          return res.status(400).json({ error: 'Product ID is required' });
+          const newProduct = await db.get('SELECT * FROM products WHERE id = ?', result.lastID);
+          return res.status(201).json(newProduct);
+        } catch (error) {
+          console.error('Error creating product:', error);
+          return res.status(500).json({ error: 'Failed to create product' });
         }
 
-        await db.run('DELETE FROM products WHERE id = ?', [productId]);
-        res.status(200).json({ message: 'Product deleted successfully' });
-      } catch (error) {
-        console.error('Error deleting product:', error);
-        res.status(500).json({ error: 'Failed to delete product' });
-      }
-      break;
+      case 'DELETE':
+        try {
+          const { id } = req.query;
+          if (!id) {
+            return res.status(400).json({ error: 'Product ID is required' });
+          }
 
-    default:
-      res.status(405).json({ error: 'Method not allowed' });
+          await db.run('DELETE FROM products WHERE id = ?', [id]);
+          return res.status(200).json({ message: 'Product deleted successfully' });
+        } catch (error) {
+          console.error('Error deleting product:', error);
+          return res.status(500).json({ error: 'Failed to delete product' });
+        }
+
+      default:
+        return res.status(405).json({ error: 'Method not allowed' });
+    }
+  } catch (error) {
+    console.error('Server error:', error);
+    return res.status(500).json({ error: 'Internal server error' });
   }
 }
