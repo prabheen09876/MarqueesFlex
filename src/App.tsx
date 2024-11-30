@@ -1,5 +1,6 @@
 import { Routes, Route } from 'react-router-dom';
 import StoreFront from './pages/StoreFront';
+import AdminPanel from './pages/AdminPanel';
 import Navbar from './components/Navbar';
 import Loading from './components/Loading';
 import { useState, useEffect } from 'react';
@@ -48,6 +49,7 @@ function App() {
       <div className="pt-16">
         <Routes>
           <Route path="/" element={<StoreFront />} />
+          <Route path="/admin" element={<AdminPanel />} />
         </Routes>
       </div>
     </div>

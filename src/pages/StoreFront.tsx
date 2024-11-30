@@ -249,7 +249,6 @@ export default function StoreFront() {
                   alt={category.name}
                   className="object-cover transform transition-all duration-500 group-hover:scale-110"
                 />
-                <div className="absolute inset-0 bg-black opacity-0 transition-opacity duration-300 group-hover:opacity-10" />
               </div>
               <h3 className="text-xl font-semibold mb-2 text-heading transition-transform duration-300 group-hover:translate-x-2">
                 {category.name}

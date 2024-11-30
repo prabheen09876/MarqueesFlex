@@ -30,34 +30,40 @@ export async function setupDatabase() {
     DROP TABLE IF EXISTS admins;
   `);
 
-  // Create tables with updated schema
+  // Create products table
+  await db.exec(`
+    CREATE TABLE IF NOT EXISTS products (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      description TEXT NOT NULL,
+      price REAL NOT NULL,
+      image TEXT NOT NULL,
+      category TEXT NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+
+  // Create orders table if it doesn't exist
   await db.exec(`
     CREATE TABLE IF NOT EXISTS orders (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
       email TEXT NOT NULL,
       phone TEXT NOT NULL,
-      description TEXT,
       address TEXT,
       notes TEXT,
       items TEXT,
       total REAL,
       type TEXT NOT NULL,
-      status TEXT NOT NULL DEFAULT 'pending',
+      status TEXT NOT NULL,
+      description TEXT,
       images TEXT,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    );
+    )
+  `);
 
-    CREATE TABLE IF NOT EXISTS products (
-      id TEXT PRIMARY KEY,
-      name TEXT NOT NULL,
-      description TEXT NOT NULL,
-      price REAL NOT NULL,
-      image TEXT NOT NULL,
-      category TEXT NOT NULL,
-      stock INTEGER DEFAULT 0
-    );
-
+  // Create tables with updated schema
+  await db.exec(`
     CREATE TABLE IF NOT EXISTS cart_sessions (
       id TEXT PRIMARY KEY,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
