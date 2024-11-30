@@ -208,9 +208,6 @@ export default function StoreFront() {
     setCartItems(items => items.filter(item => item.id !== id));
   };
 
-  function handleCustomOrder() {
-    console.log('Custom order button clicked');
-  }
 
   return (
     <div className="container mx-auto px-4">
@@ -218,7 +215,7 @@ export default function StoreFront() {
         <h1 className="text-6xl font-bold mb-4 text-heading">
           Custom LED Frames & Neon Signs
         </h1>
-        <p className="text-xl mb-8 text-body max-w-2xl mx-auto animate-fadeIn" style={{ animationDelay: '0.3s' }}>
+        <p className="text-xl mb-8 text-body max-w-2xl mx-auto " >
           Transform your space with our custom-made LED signs. Perfect for businesses, events, or personal decor.
         </p>
         <button
@@ -261,7 +258,7 @@ export default function StoreFront() {
                   alt={category.name}
                   className="object-cover transform transition-all duration-500 group-hover:scale-110"
                 />
-                <div className="absolute inset-0 bg-black opacity-0 transition-opacity duration-300 group-hover:opacity-10" />
+              
               </div>
               <h3 className="text-xl font-semibold mb-2 text-heading transition-transform duration-300 group-hover:translate-x-2">
                 {category.name}
