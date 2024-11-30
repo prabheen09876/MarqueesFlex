@@ -1,4 +1,3 @@
-import { Plus } from 'lucide-react';
 import type { Product } from '../types';
 
 interface ProductCardProps {
