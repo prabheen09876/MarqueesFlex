@@ -4,6 +4,7 @@ import Navbar from './components/Navbar';
 import Loading from './components/Loading';
 import { useState, useEffect } from 'react';
 import Lenis from '@studio-freight/lenis';
+import AdminPanel from './pages/AdminPanel';
 
 function App() {
   const [cartCount, setCartCount] = useState(0);
@@ -48,6 +49,7 @@ function App() {
       <div className="pt-16">
         <Routes>
           <Route path="/" element={<StoreFront />} />
+          <Route path="/admin" element={<AdminPanel />} />
         </Routes>
       </div>
     </div>
