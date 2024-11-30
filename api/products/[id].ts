@@ -1,10 +1,12 @@
-import { get, set } from '@vercel/edge-config';
+import { createClient } from '@vercel/edge-config';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
 export const config = {
   runtime: 'edge',
   regions: ['fra1']  // Specify the region closest to your users
 };
+
+const edgeConfig = createClient(process.env.EDGE_CONFIG);
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'DELETE') {
@@ -31,7 +33,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       });
     }
 
-    const products = await get('products') || [];
+    const products = await edgeConfig.get('products') || [];
     const productIndex = products.findIndex((p: any) => p.id === id);
 
     if (productIndex === -1) {
@@ -51,7 +53,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     ];
     
     // Update the products in Edge Config
-    await set('products', updatedProducts);
+    await edgeConfig.set('products', updatedProducts);
 
     return new Response(JSON.stringify({ message: 'Product deleted successfully' }), {
       status: 200,
@@ -62,7 +64,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     });
   } catch (error) {
     console.error('Error deleting product:', error);
-    return new Response(JSON.stringify({ error: 'Failed to delete product' }), {
+    return new Response(JSON.stringify({ error: 'Failed to delete product', details: error.message }), {
       status: 500,
       headers: { 
         'Content-Type': 'application/json',

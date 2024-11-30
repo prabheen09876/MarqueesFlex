@@ -1,4 +1,4 @@
-import { get, set } from '@vercel/edge-config';
+import { createClient } from '@vercel/edge-config';
 import type { Request } from '@vercel/node';
 
 export const config = {
@@ -6,11 +6,13 @@ export const config = {
   regions: ['fra1']  // Specify the region closest to your users
 };
 
+const edgeConfig = createClient(process.env.EDGE_CONFIG);
+
 export default async function handler(req: Request) {
   try {
     if (req.method === 'GET') {
       try {
-        const products = await get('products') || [];
+        const products = await edgeConfig.get('products') || [];
         return new Response(JSON.stringify(products), {
           status: 200,
           headers: { 
@@ -20,7 +22,7 @@ export default async function handler(req: Request) {
         });
       } catch (error) {
         console.error('Error fetching products:', error);
-        return new Response(JSON.stringify({ error: 'Failed to fetch products' }), {
+        return new Response(JSON.stringify({ error: 'Failed to fetch products', details: error.message }), {
           status: 500,
           headers: { 
             'Content-Type': 'application/json',
@@ -55,9 +57,9 @@ export default async function handler(req: Request) {
           created_at: new Date().toISOString()
         };
 
-        const existingProducts = await get('products') || [];
+        const existingProducts = await edgeConfig.get('products') || [];
         const updatedProducts = [...existingProducts, newProduct];
-        await set('products', updatedProducts);
+        await edgeConfig.set('products', updatedProducts);
 
         return new Response(JSON.stringify(newProduct), {
           status: 201,
@@ -68,7 +70,7 @@ export default async function handler(req: Request) {
         });
       } catch (error) {
         console.error('Error creating product:', error);
-        return new Response(JSON.stringify({ error: 'Failed to create product' }), {
+        return new Response(JSON.stringify({ error: 'Failed to create product', details: error.message }), {
           status: 500,
           headers: { 
             'Content-Type': 'application/json',
@@ -98,7 +100,7 @@ export default async function handler(req: Request) {
     });
   } catch (error) {
     console.error('Server error:', error);
-    return new Response(JSON.stringify({ error: 'Internal server error' }), {
+    return new Response(JSON.stringify({ error: 'Internal server error', details: error.message }), {
       status: 500,
       headers: { 
         'Content-Type': 'application/json',
