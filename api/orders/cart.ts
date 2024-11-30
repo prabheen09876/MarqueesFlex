@@ -1,167 +1,131 @@
+import { sendOrderNotification } from '../../server/utils/telegram.js';
+import { getDb } from '../../server/database.js';
+
 export const config = {
-  runtime: 'edge'
+  runtime: 'nodejs'
 };
 
-export default async function handler(req: Request) {
-  // Handle CORS preflight
+interface CartItem {
+  name: string;
+  quantity: number;
+  price: number;
+}
+
+interface CartOrder {
+  name: string;
+  email: string;
+  phone: string;
+  address: string;
+  notes?: string;
+  items: CartItem[];
+  total: number;
+}
+
+export default async function handler(req: any, res: any) {
+  // Add CORS headers
+  res.setHeader('Access-Control-Allow-Credentials', true);
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
+  res.setHeader(
+    'Access-Control-Allow-Headers',
+    'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
+  );
+
+  // Handle OPTIONS request
   if (req.method === 'OPTIONS') {
-    return new Response(null, {
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'POST',
-        'Access-Control-Allow-Headers': 'Content-Type',
-      },
-    });
+    res.status(200).end();
+    return;
   }
 
-  // Handle actual request
   if (req.method !== 'POST') {
-    return new Response(
-      JSON.stringify({ success: false, message: 'Method not allowed' }),
-      {
-        status: 405,
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
-        },
-      }
-    );
+    return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
-    const body = await req.json();
-    const { name, email, phone, address, notes, items, total } = body;
-
+    console.log('Received request body:', req.body);
+    const { name, email, phone, address, notes, items }: CartOrder = req.body;
+    
     // Validate required fields
-    if (!name || !email || !phone || !address || !items || !total) {
-      return new Response(
-        JSON.stringify({ 
-          success: false, 
-          message: 'Missing required fields',
-          details: {
-            name: !name,
-            email: !email,
-            phone: !phone,
-            address: !address,
-            items: !items,
-            total: !total
-          }
-        }),
-        {
-          status: 400,
-          headers: {
-            'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*',
-          },
+    if (!name || !email || !phone || !address || !items || !items.length) {
+      console.error('Missing required fields:', { name, email, phone, address, items });
+      return res.status(400).json({ 
+        error: 'Missing required fields',
+        details: {
+          name: !name,
+          email: !email,
+          phone: !phone,
+          address: !address,
+          items: !items || !items.length
         }
-      );
+      });
     }
 
-    // Validate items array
-    if (!Array.isArray(items) || items.length === 0) {
-      return new Response(
-        JSON.stringify({ 
-          success: false, 
-          message: 'Invalid or empty items array' 
-        }),
-        {
-          status: 400,
-          headers: {
-            'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*',
-          },
-        }
-      );
-    }
+    // Calculate total
+    const total = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
-    const itemsList = items.map((item: any) => 
-      `- ${item.name} × ${item.quantity} = ₹${(item.price * item.quantity).toLocaleString('en-IN')}`
+    // Insert order into database
+    const db = await getDb();
+    const result = await db.run(
+      `INSERT INTO orders (name, email, phone, address, notes, items, total, status, type) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [name, email, phone, address, notes || null, JSON.stringify(items), total, 'pending', 'cart']
+    );
+
+    const order = {
+      id: result.lastID,
+      name,
+      email,
+      phone,
+      address,
+      notes,
+      items,
+      total,
+      status: 'pending',
+      type: 'cart',
+      created_at: new Date().toISOString()
+    };
+
+    console.log('Created order object:', order);
+
+    // Format items for Telegram message
+    const itemsList = items.map(item => 
+      `• ${item.name} x${item.quantity} - ₹${(item.price * item.quantity).toLocaleString('en-IN')}`
     ).join('\n');
 
+    // Format Telegram message
     const message = `
-🛍️ <b>New Cart Order Received!</b>
+🛍️ New Cart Order Received!
 
-👤 <b>Customer Details:</b>
-Name: ${name}
-Email: ${email}
-Phone: ${phone}
-Address: ${address}
-${notes ? `\nNotes: ${notes}` : ''}
+👤 Customer Details:
+• Name: ${name}
+• Email: ${email}
+• Phone: ${phone}
+• Address: ${address}
+${notes ? `• Notes: ${notes}` : ''}
 
-🛒 <b>Order Items:</b>
+📦 Order Items:
 ${itemsList}
 
-💰 <b>Total Amount:</b> ₹${total.toLocaleString('en-IN')}
+💰 Total: ₹${total.toLocaleString('en-IN')}
 
-📅 Order Date: ${new Date().toLocaleString()}
+🔢 Order ID: #${order.id}
+⏰ Time: ${new Date().toLocaleString('en-IN')}
     `;
 
-    const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '7885175271:AAFq14mUhtzxuweV_DCAHRmKYk3r1vPVKk8';
-    const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID || '1157438477';
-
-    const telegramResponse = await fetch(
-      `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          chat_id: TELEGRAM_CHAT_ID,
-          text: message,
-          parse_mode: 'HTML',
-        }),
-      }
-    );
-
-    const telegramData = await telegramResponse.json();
-
-    if (!telegramResponse.ok) {
-      console.error('Telegram API Error:', telegramData);
-      return new Response(
-        JSON.stringify({
-          success: false,
-          message: 'Failed to send order notification',
-          error: telegramData
-        }),
-        {
-          status: 500,
-          headers: {
-            'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*',
-          },
-        }
-      );
-    }
-
-    return new Response(
-      JSON.stringify({
-        success: true,
-        message: 'Order placed successfully'
-      }),
-      {
-        status: 200,
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
-        },
-      }
-    );
-  } catch (error) {
-    console.error('Server error:', error);
-    return new Response(
-      JSON.stringify({
-        success: false,
-        message: 'Internal server error',
-        error: error instanceof Error ? error.message : 'Unknown error'
-      }),
-      {
-        status: 500,
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
-        },
-      }
-    );
+    console.log('Sending Telegram notification...');
+    await sendOrderNotification(message);
+    console.log('Telegram notification sent successfully');
+    
+    return res.status(201).json(order);
+  } catch (error: any) {
+    console.error('Detailed error:', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name
+    });
+    return res.status(500).json({ 
+      error: 'Failed to create cart order',
+      details: error.message 
+    });
   }
 }
