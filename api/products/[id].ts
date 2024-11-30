@@ -1,12 +1,12 @@
-import { sql } from '@vercel/postgres';
-import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { deleteProduct } from '../../lib/db';
+import type { NextApiRequest, NextApiResponse } from 'next';
 
 export const config = {
   runtime: 'edge',
   regions: ['fra1']  // Specify the region closest to your users
 };
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   // Enable CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'DELETE, OPTIONS');
@@ -21,29 +21,26 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    const { id } = req.query;
+    const id = req.query.id as string;
 
     if (!id || Array.isArray(id)) {
       return res.status(400).json({ error: 'Invalid product ID' });
     }
 
-    // First check if the product exists
-    const { rows } = await sql`
-      SELECT id FROM products WHERE id = ${id}
-    `;
+    const { data, error } = await deleteProduct(id);
 
-    if (rows.length === 0) {
+    if (error) {
+      console.error('Error deleting product:', error);
+      return res.status(500).json({ error: 'Failed to delete product' });
+    }
+
+    if (!data || data.length === 0) {
       return res.status(404).json({ error: 'Product not found' });
     }
 
-    // Delete the product
-    await sql`
-      DELETE FROM products WHERE id = ${id}
-    `;
-
     return res.status(200).json({ message: 'Product deleted successfully' });
   } catch (error) {
-    console.error('Database error:', error);
-    return res.status(500).json({ error: 'Database error', details: error.message });
+    console.error('API error:', error);
+    return res.status(500).json({ error: 'Server error', details: error.message });
   }
 }
