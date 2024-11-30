@@ -1,9 +1,5 @@
 import { Request } from '@vercel/edge';
 
-export const config = {
-  runtime: 'edge'
-};
-
 export default async function handler(req: Request) {
   if (req.method !== 'POST') {
     return new Response(

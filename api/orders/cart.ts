@@ -1,10 +1,6 @@
 import { sendOrderNotification } from '../../server/utils/telegram.js';
 import { getDb } from '../../server/database.js';
 
-export const config = {
-  runtime: 'nodejs'
-};
-
 interface CartItem {
   name: string;
   quantity: number;
