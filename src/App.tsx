@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, useLocation } from 'react-router-dom';
 import StoreFront from './pages/StoreFront';
 import AdminPanel from './pages/AdminPanel';
 import Navbar from './components/Navbar';
@@ -9,6 +9,8 @@ import Lenis from '@studio-freight/lenis';
 function App() {
   const [cartCount, setCartCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
+  const location = useLocation();
+  const isAdminPage = location.pathname === '/admin';
 
   useEffect(() => {
     const lenis = new Lenis({
@@ -39,14 +41,14 @@ function App() {
     };
   }, []);
 
-  if (isLoading) {
+  if (isLoading && !isAdminPage) {
     return <Loading />;
   }
 
   return (
     <div className="min-h-screen">
-      <Navbar cartCount={cartCount} onCartClick={() => {}} />
-      <div className="pt-16">
+      {!isAdminPage && <Navbar cartCount={cartCount} onCartClick={() => {}} />}
+      <div className={!isAdminPage ? "pt-16" : ""}>
         <Routes>
           <Route path="/" element={<StoreFront />} />
           <Route path="/admin" element={<AdminPanel />} />
