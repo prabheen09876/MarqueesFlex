@@ -1,11 +1,6 @@
 import { deleteProduct } from '../../lib/db';
 import type { NextApiRequest, NextApiResponse } from 'next';
 
-export const config = {
-  runtime: 'edge',
-  regions: ['fra1']  // Specify the region closest to your users
-};
-
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   // Enable CORS
   res.setHeader('Access-Control-Allow-Origin', '*');

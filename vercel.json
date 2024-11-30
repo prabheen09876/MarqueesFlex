@@ -1,6 +1,7 @@
 {
   "version": 2,
   "buildCommand": "npm run build",
+  "devCommand": "npm run dev",
   "outputDirectory": "dist",
   "installCommand": "npm install",
   "framework": "vite",
@@ -20,7 +21,7 @@
   ],
   "functions": {
     "api/**/*": {
-      "runtime": "edge",
+      "runtime": "@vercel/node@2.15.10",
       "memory": 128
     }
   }
