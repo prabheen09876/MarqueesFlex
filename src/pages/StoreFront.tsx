@@ -210,11 +210,11 @@ export default function StoreFront() {
 
   return (
     <div className="container mx-auto px-4">
-      <section ref={heroRef as any} className="text-center py-12 animate-blurIn">
-        <h1 className="text-6xl font-bold mb-4 text-heading animate-float">
+      <section ref={heroRef as any} className="text-center py-12">
+        <h1 className="text-6xl font-bold mb-4 text-heading ">
           Custom LED Frames & Neon Signs
         </h1>
-        <p className="text-xl mb-8 text-body max-w-2xl mx-auto animate-fadeIn" style={{ animationDelay: '0.3s' }}>
+        <p className="text-xl mb-8 text-body max-w-2xl mx-auto ">
           Transform your space with our custom-made LED signs. Perfect for businesses, events, or personal decor.
         </p>
         <button
