@@ -1,111 +1,49 @@
-import { createClient } from '@vercel/edge-config';
-import type { Request } from '@vercel/node';
+import { sql } from '@vercel/postgres';
+import type { VercelRequest, VercelResponse } from '@vercel/node';
 
 export const config = {
   runtime: 'edge',
   regions: ['fra1']  // Specify the region closest to your users
 };
 
-const edgeConfig = createClient(process.env.EDGE_CONFIG);
+export default async function handler(req: VercelRequest, res: VercelResponse) {
+  // Enable CORS
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-export default async function handler(req: Request) {
+  if (req.method === 'OPTIONS') {
+    return res.status(204).end();
+  }
+
   try {
     if (req.method === 'GET') {
-      try {
-        const products = await edgeConfig.get('products') || [];
-        return new Response(JSON.stringify(products), {
-          status: 200,
-          headers: { 
-            'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*'
-          }
-        });
-      } catch (error) {
-        console.error('Error fetching products:', error);
-        return new Response(JSON.stringify({ error: 'Failed to fetch products', details: error.message }), {
-          status: 500,
-          headers: { 
-            'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*'
-          }
-        });
-      }
+      const { rows } = await sql`
+        SELECT * FROM products 
+        ORDER BY created_at DESC
+      `;
+      return res.status(200).json(rows);
     }
 
     if (req.method === 'POST') {
-      try {
-        const body = await req.json();
-        const { name, description, price, image, category } = body;
+      const { name, description, price, image, category } = req.body;
 
-        if (!name || !description || !price || !image || !category) {
-          return new Response(JSON.stringify({ error: 'Missing required fields' }), {
-            status: 400,
-            headers: { 
-              'Content-Type': 'application/json',
-              'Access-Control-Allow-Origin': '*'
-            }
-          });
-        }
-
-        const newProduct = {
-          id: Date.now().toString(),
-          name,
-          description,
-          price,
-          image,
-          category,
-          created_at: new Date().toISOString()
-        };
-
-        const existingProducts = await edgeConfig.get('products') || [];
-        const updatedProducts = [...existingProducts, newProduct];
-        await edgeConfig.set('products', updatedProducts);
-
-        return new Response(JSON.stringify(newProduct), {
-          status: 201,
-          headers: { 
-            'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*'
-          }
-        });
-      } catch (error) {
-        console.error('Error creating product:', error);
-        return new Response(JSON.stringify({ error: 'Failed to create product', details: error.message }), {
-          status: 500,
-          headers: { 
-            'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*'
-          }
-        });
+      if (!name || !description || !price || !image || !category) {
+        return res.status(400).json({ error: 'Missing required fields' });
       }
+
+      const { rows } = await sql`
+        INSERT INTO products (name, description, price, image, category)
+        VALUES (${name}, ${description}, ${price}, ${image}, ${category})
+        RETURNING *
+      `;
+
+      return res.status(201).json(rows[0]);
     }
 
-    if (req.method === 'OPTIONS') {
-      return new Response(null, {
-        status: 204,
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-          'Access-Control-Allow-Headers': 'Content-Type'
-        }
-      });
-    }
-
-    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
-      status: 405,
-      headers: { 
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*'
-      }
-    });
+    return res.status(405).json({ error: 'Method not allowed' });
   } catch (error) {
-    console.error('Server error:', error);
-    return new Response(JSON.stringify({ error: 'Internal server error', details: error.message }), {
-      status: 500,
-      headers: { 
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*'
-      }
-    });
+    console.error('Database error:', error);
+    return res.status(500).json({ error: 'Database error', details: error.message });
   }
 }

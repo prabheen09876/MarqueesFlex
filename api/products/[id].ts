@@ -1,4 +1,4 @@
-import { createClient } from '@vercel/edge-config';
+import { sql } from '@vercel/postgres';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
 export const config = {
@@ -6,70 +6,44 @@ export const config = {
   regions: ['fra1']  // Specify the region closest to your users
 };
 
-const edgeConfig = createClient(process.env.EDGE_CONFIG);
-
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  // Enable CORS
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  if (req.method === 'OPTIONS') {
+    return res.status(204).end();
+  }
+
   if (req.method !== 'DELETE') {
-    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
-      status: 405,
-      headers: { 
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*'
-      }
-    });
+    return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
-    const url = new URL(req.url);
-    const id = url.pathname.split('/').pop();
+    const { id } = req.query;
 
-    if (!id) {
-      return new Response(JSON.stringify({ error: 'Invalid product ID' }), {
-        status: 400,
-        headers: { 
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*'
-        }
-      });
+    if (!id || Array.isArray(id)) {
+      return res.status(400).json({ error: 'Invalid product ID' });
     }
 
-    const products = await edgeConfig.get('products') || [];
-    const productIndex = products.findIndex((p: any) => p.id === id);
+    // First check if the product exists
+    const { rows } = await sql`
+      SELECT id FROM products WHERE id = ${id}
+    `;
 
-    if (productIndex === -1) {
-      return new Response(JSON.stringify({ error: 'Product not found' }), {
-        status: 404,
-        headers: { 
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*'
-        }
-      });
+    if (rows.length === 0) {
+      return res.status(404).json({ error: 'Product not found' });
     }
 
-    // Remove the product from the array
-    const updatedProducts = [
-      ...products.slice(0, productIndex),
-      ...products.slice(productIndex + 1)
-    ];
-    
-    // Update the products in Edge Config
-    await edgeConfig.set('products', updatedProducts);
+    // Delete the product
+    await sql`
+      DELETE FROM products WHERE id = ${id}
+    `;
 
-    return new Response(JSON.stringify({ message: 'Product deleted successfully' }), {
-      status: 200,
-      headers: { 
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*'
-      }
-    });
+    return res.status(200).json({ message: 'Product deleted successfully' });
   } catch (error) {
-    console.error('Error deleting product:', error);
-    return new Response(JSON.stringify({ error: 'Failed to delete product', details: error.message }), {
-      status: 500,
-      headers: { 
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*'
-      }
-    });
+    console.error('Database error:', error);
+    return res.status(500).json({ error: 'Database error', details: error.message });
   }
 }
