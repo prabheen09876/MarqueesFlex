@@ -21,7 +21,7 @@
   ],
   "functions": {
     "api/**/*": {
-      "runtime": "@vercel/node@2.15.10",
+      "runtime": "@vercel/node@18.x",
       "memory": 128
     }
   }
