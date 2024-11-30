@@ -1,7 +1,11 @@
 import { sendOrderNotification } from '../../server/utils/telegram.js';
 import { getDb } from '../../server/database.js';
 
-export const config = {};
+export const config = {
+  api: {
+    bodyParser: true
+  }
+};
 
 interface CartItem {
   name: string;
@@ -9,7 +13,7 @@ interface CartItem {
   price: number;
 }
 
-interface CartOrder {
+interface OrderRequest {
   name: string;
   email: string;
   phone: string;
@@ -41,7 +45,7 @@ export default async function handler(req: any, res: any) {
 
   try {
     console.log('Received request body:', req.body);
-    const { name, email, phone, address, notes, items }: CartOrder = req.body;
+    const { name, email, phone, address, notes, items }: OrderRequest = req.body;
     
     // Validate required fields
     if (!name || !email || !phone || !address || !items || !items.length) {
@@ -60,30 +64,6 @@ export default async function handler(req: any, res: any) {
 
     // Calculate total
     const total = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-
-    // Insert order into database
-    const db = await getDb();
-    const result = await db.run(
-      `INSERT INTO orders (name, email, phone, address, notes, items, total, status, type) 
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [name, email, phone, address, notes || null, JSON.stringify(items), total, 'pending', 'cart']
-    );
-
-    const order = {
-      id: result.lastID,
-      name,
-      email,
-      phone,
-      address,
-      notes,
-      items,
-      total,
-      status: 'pending',
-      type: 'cart',
-      created_at: new Date().toISOString()
-    };
-
-    console.log('Created order object:', order);
 
     // Format items for Telegram message
     const itemsList = items.map(item => 
@@ -106,15 +86,50 @@ ${itemsList}
 
 💰 Total: ₹${total.toLocaleString('en-IN')}
 
-🔢 Order ID: #${order.id}
 ⏰ Time: ${new Date().toLocaleString('en-IN')}
     `;
 
-    console.log('Sending Telegram notification...');
-    await sendOrderNotification(message);
-    console.log('Telegram notification sent successfully');
-    
-    return res.status(201).json(order);
+    try {
+      console.log('Sending Telegram notification...');
+      await sendOrderNotification(message);
+      console.log('Telegram notification sent successfully');
+    } catch (error) {
+      console.error('Error sending Telegram notification:', error);
+      // Continue processing even if Telegram notification fails
+    }
+
+    // Store order in database
+    try {
+      const db = await getDb();
+      const result = await db.run(
+        `INSERT INTO orders (name, email, phone, address, notes, items, total, status)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        [name, email, phone, address, notes || null, JSON.stringify(items), total, 'pending']
+      );
+
+      const order = {
+        id: result.lastID,
+        name,
+        email,
+        phone,
+        address,
+        notes,
+        items,
+        total,
+        status: 'pending',
+        created_at: new Date().toISOString()
+      };
+
+      console.log('Created order object:', order);
+
+      return res.status(201).json(order);
+    } catch (dbError) {
+      console.error('Database error:', dbError);
+      return res.status(500).json({ 
+        error: 'Failed to store order',
+        details: dbError.message 
+      });
+    }
   } catch (error: any) {
     console.error('Detailed error:', {
       message: error.message,
@@ -122,7 +137,7 @@ ${itemsList}
       name: error.name
     });
     return res.status(500).json({ 
-      error: 'Failed to create cart order',
+      error: 'Internal server error',
       details: error.message 
     });
   }

@@ -19,6 +19,19 @@
     {
       "source": "/api/(.*)",
       "destination": "/api/$1"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
-  ]
+  ],
+  "functions": {
+    "api/**/*": {
+      "memory": 1024,
+      "maxDuration": 10
+    }
+  },
+  "env": {
+    "NODE_ENV": "production"
+  }
 }
