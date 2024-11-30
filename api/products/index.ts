@@ -1,63 +1,55 @@
+import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { getDb } from '../../server/database.js';
 
-export default async function handler(req, res) {
-  const db = await getDb();
+export default async function handler(req: VercelRequest, res: VercelResponse) {
+  try {
+    const db = await getDb();
 
-  switch (req.method) {
-    case 'GET':
-      try {
-        const products = await db.all('SELECT * FROM products');
-        return res.status(200).json(products);
-      } catch (error) {
-        console.error('Error fetching products:', error);
-        return res.status(500).json({ error: 'Failed to fetch products' });
-      }
-
-    case 'POST':
-      try {
-        const { name, description, price, image, category } = req.body;
-
-        if (!name || !description || !price || !image || !category) {
-          return res.status(400).json({ error: 'Missing required fields' });
+    switch (req.method) {
+      case 'GET':
+        try {
+          const products = await db.all('SELECT * FROM products ORDER BY created_at DESC');
+          return res.status(200).json(products);
+        } catch (error) {
+          console.error('Error fetching products:', error);
+          return res.status(500).json({ error: 'Failed to fetch products' });
         }
 
-        const result = await db.run(
-          `INSERT INTO products (name, description, price, image, category) 
-           VALUES (?, ?, ?, ?, ?)`,
-          [name, description, price, image, category]
-        );
+      case 'POST':
+        try {
+          const { name, description, price, image, category } = req.body;
 
-        const newProduct = {
-          id: result.lastID,
-          name,
-          description,
-          price,
-          image,
-          category
-        };
+          if (!name || !description || !price || !image || !category) {
+            return res.status(400).json({ error: 'Missing required fields' });
+          }
 
-        return res.status(201).json(newProduct);
-      } catch (error) {
-        console.error('Error creating product:', error);
-        return res.status(500).json({ error: 'Failed to create product' });
-      }
+          const result = await db.run(
+            `INSERT INTO products (name, description, price, image, category) 
+             VALUES (?, ?, ?, ?, ?)`,
+            [name, description, price, image, category]
+          );
 
-    case 'DELETE':
-      try {
-        const { id } = req.query;
+          const newProduct = {
+            id: result.lastID,
+            name,
+            description,
+            price,
+            image,
+            category,
+            created_at: new Date().toISOString()
+          };
 
-        if (!id) {
-          return res.status(400).json({ error: 'Product ID is required' });
+          return res.status(201).json(newProduct);
+        } catch (error) {
+          console.error('Error creating product:', error);
+          return res.status(500).json({ error: 'Failed to create product' });
         }
 
-        await db.run('DELETE FROM products WHERE id = ?', id);
-        return res.status(200).json({ message: 'Product deleted successfully' });
-      } catch (error) {
-        console.error('Error deleting product:', error);
-        return res.status(500).json({ error: 'Failed to delete product' });
-      }
-
-    default:
-      return res.status(405).json({ error: 'Method not allowed' });
+      default:
+        return res.status(405).json({ error: 'Method not allowed' });
+    }
+  } catch (error) {
+    console.error('Database connection error:', error);
+    return res.status(500).json({ error: 'Database connection failed' });
   }
 }

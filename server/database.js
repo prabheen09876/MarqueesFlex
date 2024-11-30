@@ -4,80 +4,69 @@ import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
+const dbPath = process.env.NODE_ENV === 'production' 
+  ? '/tmp/database.sqlite'
+  : join(__dirname, 'database.sqlite');
 
 let db;
 
 export async function getDb() {
   if (!db) {
-    db = await open({
-      filename: join(__dirname, 'database.sqlite'),
-      driver: sqlite3.Database
-    });
+    try {
+      db = await open({
+        filename: dbPath,
+        driver: sqlite3.Database
+      });
+      
+      // Initialize database schema
+      await setupDatabase();
+    } catch (error) {
+      console.error('Failed to open database:', error);
+      throw error;
+    }
   }
   return db;
 }
 
 export async function setupDatabase() {
-  const db = await getDb();
+  try {
+    const db = await getDb();
+    
+    // Create products table
+    await db.exec(`
+      CREATE TABLE IF NOT EXISTS products (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        description TEXT NOT NULL,
+        price REAL NOT NULL,
+        image TEXT NOT NULL,
+        category TEXT NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
 
-  // Drop existing tables to reset schema
-  await db.exec(`
-    DROP TABLE IF EXISTS order_images;
-    DROP TABLE IF EXISTS orders;
-    DROP TABLE IF EXISTS products;
-    DROP TABLE IF EXISTS cart_sessions;
-    DROP TABLE IF EXISTS cart_items;
-    DROP TABLE IF EXISTS admins;
-  `);
+    // Create orders table
+    await db.exec(`
+      CREATE TABLE IF NOT EXISTS orders (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        email TEXT NOT NULL,
+        phone TEXT NOT NULL,
+        address TEXT,
+        notes TEXT,
+        items TEXT,
+        total REAL,
+        type TEXT NOT NULL,
+        status TEXT NOT NULL,
+        description TEXT,
+        images TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
 
-  // Create products table
-  await db.exec(`
-    CREATE TABLE IF NOT EXISTS products (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL,
-      description TEXT NOT NULL,
-      price REAL NOT NULL,
-      image TEXT NOT NULL,
-      category TEXT NOT NULL,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    )
-  `);
-
-  // Create orders table if it doesn't exist
-  await db.exec(`
-    CREATE TABLE IF NOT EXISTS orders (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL,
-      email TEXT NOT NULL,
-      phone TEXT NOT NULL,
-      address TEXT,
-      notes TEXT,
-      items TEXT,
-      total REAL,
-      type TEXT NOT NULL,
-      status TEXT NOT NULL,
-      description TEXT,
-      images TEXT,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    )
-  `);
-
-  // Create tables with updated schema
-  await db.exec(`
-    CREATE TABLE IF NOT EXISTS cart_sessions (
-      id TEXT PRIMARY KEY,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    );
-
-    CREATE TABLE IF NOT EXISTS cart_items (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      session_id TEXT NOT NULL,
-      product_id TEXT NOT NULL,
-      quantity INTEGER NOT NULL DEFAULT 1,
-      FOREIGN KEY (session_id) REFERENCES cart_sessions (id),
-      FOREIGN KEY (product_id) REFERENCES products (id)
-    );
-  `);
-
-  console.log('Database setup completed');
+    console.log('Database setup completed');
+  } catch (error) {
+    console.error('Error setting up database:', error);
+    throw error;
+  }
 }
