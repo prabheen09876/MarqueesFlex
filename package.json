@@ -9,8 +9,6 @@
   "scripts": {
     "dev": "concurrently \"vite\" \"node server/index.js\"",
     "build": "tsc && vite build",
-    "vercel-build": "npm run build",
-    "lint": "eslint .",
     "preview": "vite preview"
   },
   "dependencies": {
