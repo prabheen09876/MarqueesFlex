@@ -1,59 +1,50 @@
-import { Routes, Route, useLocation } from 'react-router-dom';
+import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import StoreFront from './pages/StoreFront';
 import AdminPanel from './pages/AdminPanel';
 import Navbar from './components/Navbar';
-import Loading from './components/Loading';
+import Footer from './components/Footer';
 import { useState, useEffect } from 'react';
-import Lenis from '@studio-freight/lenis';
+import { useAuth } from './hooks/useAuth';
+
+function PrivateRoute({ children }: { children: React.ReactNode }) {
+  const { user, loading } = useAuth();
+  const location = useLocation();
+
+  useEffect(() => {
+    console.log('PrivateRoute - Auth State:', { user, loading, path: location.pathname });
+  }, [user, loading, location]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    // Redirect to admin page but in non-authenticated state
+    return <Navigate to="/admin" state={{ from: location }} replace />;
+  }
+
+  return <>{children}</>;
+}
 
 function App() {
   const [cartCount, setCartCount] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
   const location = useLocation();
   const isAdminPage = location.pathname === '/admin';
 
-  useEffect(() => {
-    const lenis = new Lenis({
-      duration: 1.2,
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-      direction: 'vertical',
-      gestureDirection: 'vertical',
-      smooth: true,
-      smoothTouch: false,
-      touchMultiplier: 2,
-    });
-
-    function raf(time: number) {
-      lenis.raf(time);
-      requestAnimationFrame(raf);
-    }
-
-    requestAnimationFrame(raf);
-
-    // Simulate loading time
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 2000);
-
-    return () => {
-      lenis.destroy();
-      clearTimeout(timer);
-    };
-  }, []);
-
-  if (isLoading && !isAdminPage) {
-    return <Loading />;
-  }
-
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen flex flex-col">
       {!isAdminPage && <Navbar cartCount={cartCount} onCartClick={() => {}} />}
-      <div className={!isAdminPage ? "pt-16" : ""}>
+      <div className={`flex-grow ${!isAdminPage ? "pt-16" : ""}`}>
         <Routes>
-          <Route path="/" element={<StoreFront />} />
+          <Route path="/" element={<StoreFront setCartCount={setCartCount} />} />
           <Route path="/admin" element={<AdminPanel />} />
         </Routes>
       </div>
+      {!isAdminPage && <Footer />}
     </div>
   );
 }

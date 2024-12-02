@@ -1,5 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useScrollAnimation } from '../hooks/useScrollAnimation';
+import { useProducts } from '../hooks/useProducts';
+import { getCategories } from '../services/categoryService';
+import type { Category } from '../services/categoryService';
 import ProductCard from '../components/ProductCard';
 import Cart from '../components/Cart';
 import CustomOrderForm from '../components/CustomOrderForm';
@@ -17,135 +20,6 @@ import LetterBoardImage from '../assets/3dletterboard.png';
 import FlexBoardImage from '../assets/flexboard.png';
 import StandBannerImage from '../assets/standbanner.png';
 import PosterImage from '../assets/poster1.png';
-
-const products: Product[] = [
-  {
-    id: '1',
-    name: 'Custom Neon Sign',
-    description: 'Personalized LED neon sign, perfect for home or business',
-    price: 149.99,
-    image: 'https://images.unsplash.com/photo-1595794279832-5f7d62ca6b0a?auto=format&fit=crop&q=80&w=800',
-    category: 'neon'
-  },
-  {
-    id: '2',
-    name: 'Premium Flex Banner',
-    description: 'High-quality flex banner with UV-resistant ink',
-    price: 79.99,
-    image: FlexBannerImage,
-    category: 'banner'
-  },
-  {
-    id: '3',
-    name: 'LED Photo Frame',
-    description: 'Illuminated photo frame with crystal-clear display',
-    price: 149.99,
-    image: 'https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?auto=format&fit=crop&q=80&w=800',
-    category: 'frame'
-  },
-  // New Anime Products
-  {
-    id: '4',
-    name: 'Naruto LED Frame',
-    description: 'Custom LED frame featuring Naruto characters',
-    price: 199.99,
-    image: 'https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&q=80&w=800',
-    category: 'anime'
-  },
-  {
-    id: '5',
-    name: 'Dragon Ball Z Frame',
-    description: 'Illuminated frame with Dragon Ball Z artwork',
-    price: 189.99,
-    image: 'https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&q=80&w=800',
-    category: 'anime'
-  },
-  // Aesthetic Products
-  {
-    id: '6',
-    name: 'Vaporwave Aesthetic Frame',
-    description: 'Retro vaporwave style LED frame',
-    price: 169.99,
-    image: 'https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&q=80&w=800',
-    category: 'aesthetic'
-  },
-  {
-    id: '7',
-    name: 'Minimalist LED Design',
-    description: 'Clean, minimalist LED frame design',
-    price: 159.99,
-    image: 'https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&q=80&w=800',
-    category: 'aesthetic'
-  },
-  // Car Products
-  {
-    id: '8',
-    name: 'Sports Car Frame',
-    description: 'LED frame featuring luxury sports cars',
-    price: 179.99,
-    image: 'https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&q=80&w=800',
-    category: 'cars'
-  },
-  {
-    id: '9',
-    name: 'Classic Cars Collection',
-    description: 'Vintage and classic cars LED frame collection',
-    price: 189.99,
-    image: 'https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&q=80&w=800',
-    category: 'cars'
-  }
-];
-
-const categories = [
-  {
-    id: '1',
-    name: 'Neon Signs',
-    description: 'Custom-made neon signs for businesses and homes',
-    image: NeonSignImage
-  },
-  {
-    id: '2',
-    name: 'Flex Banners',
-    description: 'High-quality flex banners for indoor and outdoor use',
-    image: FlexBannerImage
-  },
-  {
-    id: '3',
-    name: 'Glow Boards',
-    description: 'Illuminated display boards with stunning visual effects',
-    image: GlowBoardImage
-  },
-  {
-    id: '4',
-    name: 'Light Frames',
-    description: 'Modern LED frames for eye-catching displays',
-    image: LightFrameImage
-  },
-  {
-    id: '5',
-    name: '3D Letter Boards',
-    description: 'Three-dimensional letter boards for impactful signage',
-    image: LetterBoardImage
-  },
-  {
-    id: '6',
-    name: 'Stand Banners',
-    description: 'Portable stand banners perfect for events and exhibitions',
-    image: StandBannerImage
-  },
-  {
-    id: '7',
-    name: 'Premium Posters',
-    description: 'High-resolution posters for promotional and decorative use',
-    image: PosterImage
-  },
-  {
-    id: '8',
-    name: 'Glow Signs',
-    description: 'Vibrant glow signs for businesses and events',
-    image: GlowSignImage
-  }
-];
 
 const features = [
   {
@@ -176,6 +50,24 @@ export default function StoreFront() {
   const customOrderRef = useScrollAnimation();
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const { products, loading, error, getProductsByCategory } = useProducts();
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const fetchedCategories = await getCategories();
+        setCategories(fetchedCategories);
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+      } finally {
+        setCategoriesLoading(false);
+      }
+    };
+
+    fetchCategories();
+  }, []);
 
   const addToCart = (product: Product) => {
     setCartItems(items => {
@@ -233,32 +125,40 @@ export default function StoreFront() {
         <h2 className="text-3xl font-bold mb-8 text-heading text-center animate-fadeIn">
           Popular Categories
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {categories.map((category, index) => (
-            <div 
-              key={category.id} 
-              className="card group cursor-pointer hover:shadow-lg transition-all duration-500"
-              style={{ 
-                animation: `fadeIn 0.8s ease-out forwards`,
-                animationDelay: `${index * 0.2}s`
-              }}
-            >
-              <div className="aspect-w-16 aspect-h-9 mb-4 rounded-lg overflow-hidden">
-                <img
-                  src={category.image}
-                  alt={category.name}
-                  className="object-cover transform transition-all duration-500 group-hover:scale-110"
-                />
-              </div>
-              <h3 className="text-xl font-semibold mb-2 text-heading transition-transform duration-300 group-hover:translate-x-2">
-                {category.name}
-              </h3>
-              <p className="text-body text-sm transition-all duration-300 group-hover:text-primary">
-                {category.description}
-              </p>
-            </div>
-          ))}
-        </div>
+        {categoriesLoading ? (
+          <div className="flex justify-center items-center py-20">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#0A3981]"></div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {categories
+              .filter(category => category.featured)
+              .map((category, index) => (
+                <div 
+                  key={category.id} 
+                  className="card group cursor-pointer hover:shadow-lg transition-all duration-500"
+                  style={{ 
+                    animation: `fadeIn 0.8s ease-out forwards`,
+                    animationDelay: `${index * 0.2}s`
+                  }}
+                >
+                  <div className="aspect-w-16 aspect-h-9 mb-4 rounded-lg overflow-hidden">
+                    <img
+                      src={category.image}
+                      alt={category.name}
+                      className="object-cover transform transition-all duration-500 group-hover:scale-110"
+                    />
+                  </div>
+                  <h3 className="text-xl font-semibold mb-2 text-heading transition-transform duration-300 group-hover:translate-x-2">
+                    {category.name}
+                  </h3>
+                  <p className="text-body text-sm transition-all duration-300 group-hover:text-primary">
+                    {category.description}
+                  </p>
+                </div>
+              ))}
+          </div>
+        )}
       </section>
 
       <section ref={featuresRef as any} className="py-12">
@@ -294,41 +194,55 @@ export default function StoreFront() {
           Featured Collections
         </h2>
         
-        <CategorySection
-          title="Anime Collection"
-          products={products.filter(p => p.category === 'anime')}
-          onAddToCart={addToCart}
-        />
-        
-        <CategorySection
-          title="Aesthetic Collection"
-          products={products.filter(p => p.category === 'aesthetic')}
-          onAddToCart={addToCart}
-        />
-        
-        <CategorySection
-          title="Car Collection"
-          products={products.filter(p => p.category === 'cars')}
-          onAddToCart={addToCart}
-        />
+        {loading ? (
+          <div className="flex justify-center items-center py-20">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#0A3981]"></div>
+          </div>
+        ) : error ? (
+          <div className="text-red-500 text-center py-10">
+            {error}
+          </div>
+        ) : (
+          <>
+            <CategorySection
+              title="Car Collection"
+              products={getProductsByCategory('car')}
+              onAddToCart={addToCart}
+            />
+            
+            <CategorySection
+              title="Anime Collection"
+              products={getProductsByCategory('anime')}
+              onAddToCart={addToCart}
+            />
+            
+            <CategorySection
+              title="Aesthetic Collection"
+              products={getProductsByCategory('aesthetic')}
+              onAddToCart={addToCart}
+            />
 
-        <h2 className="text-3xl font-bold my-8 text-heading text-center">
-          Our Products
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {products.filter(p => ['neon', 'banner', 'frame', 'flex'].includes(p.category)).map((product, index) => (
-            <div 
-              key={product.id}
-              className="transform transition-all duration-500"
-              style={{ animation: `fadeIn 0.5s ease-out forwards ${index * 0.1}s` }}
-            >
-              <ProductCard
-                product={product}
-                onAddToCart={addToCart}
-              />
+            <h2 className="text-3xl font-bold my-8 text-heading text-center">
+              Our Products
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {products
+                .filter(p => p.category === 'our-products')
+                .map((product, index) => (
+                  <div 
+                    key={product.id}
+                    className="transform transition-all duration-500"
+                    style={{ animation: `fadeIn 0.5s ease-out forwards ${index * 0.1}s` }}
+                  >
+                    <ProductCard
+                      product={product}
+                      onAddToCart={addToCart}
+                    />
+                  </div>
+                ))}
             </div>
-          ))}
-        </div>
+          </>
+        )}
       </section>
 
       <section ref={customOrderRef as any} id="custom" className="py-12">

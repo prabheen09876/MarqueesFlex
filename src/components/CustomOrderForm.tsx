@@ -6,11 +6,26 @@ interface ApiResponse {
   message: string;
 }
 
+const productCategories = [
+  'Select Category',
+  'Neon Light Text',
+  'Neon Light Decor',
+  'Glowsigns',
+  'Light Frames',
+  'Flex Banners',
+  '3D Letter Banner',
+  'Glow Boards',
+  'Stand Banners',
+  'Digital Boards',
+  'Other'
+];
+
 export default function CustomOrderForm() {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     phone: '',
+    category: 'Select Category',
     description: '',
   });
 
@@ -19,7 +34,7 @@ export default function CustomOrderForm() {
   const [success, setSuccess] = useState('');
 
   const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -27,6 +42,10 @@ export default function CustomOrderForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (formData.category === 'Select Category') {
+      setError('Please select a product category');
+      return;
+    }
     setIsSubmitting(true);
     setError('');
     setSuccess('');
@@ -57,6 +76,7 @@ export default function CustomOrderForm() {
         name: '',
         email: '',
         phone: '',
+        category: 'Select Category',
         description: '',
       });
     } catch (err) {
@@ -106,24 +126,41 @@ export default function CustomOrderForm() {
             required
           />
         </div>
+
+        <div className="space-y-2 transition-all duration-300 hover:translate-x-1">
+          <label className="block text-sm font-medium text-gray-700">Phone Number *</label>
+          <input
+            type="tel"
+            id="phone"
+            name="phone"
+            value={formData.phone}
+            onChange={handleInputChange}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300"
+            required
+          />
+        </div>
+
+        <div className="space-y-2 transition-all duration-300 hover:translate-x-1">
+          <label className="block text-sm font-medium text-gray-700">Product Category *</label>
+          <select
+            id="category"
+            name="category"
+            value={formData.category}
+            onChange={handleInputChange}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300 bg-white"
+            required
+          >
+            {productCategories.map((category) => (
+              <option key={category} value={category}>
+                {category}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
       <div className="space-y-2 transition-all duration-300 hover:translate-x-1">
-        <label className="block text-sm font-medium text-gray-700">Phone Number *</label>
-        <input
-          type="tel"
-          id="phone"
-          name="phone"
-          value={formData.phone}
-          onChange={handleInputChange}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300"
-          required
-          placeholder="+91 0000000000"
-        />
-      </div>
-
-      <div className="space-y-2 transition-all duration-300 hover:translate-y-1">
-        <label className="block text-sm font-medium text-gray-700">Project Description *</label>
+        <label className="block text-sm font-medium text-gray-700">Order Description *</label>
         <textarea
           id="description"
           name="description"
@@ -132,29 +169,32 @@ export default function CustomOrderForm() {
           rows={4}
           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300"
           required
-          placeholder="Please describe your project requirements..."
+          placeholder="Please describe your custom order requirements..."
         />
       </div>
 
       <div className="flex justify-center">
         <button
           type="submit"
-          className="px-8 py-3 bg-[#0A3981] text-white rounded-lg font-semibold transform transition-all duration-300 hover:bg-[#1F509A] hover:scale-105 hover:shadow-lg active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
           disabled={isSubmitting}
+          className={`
+            inline-flex items-center px-6 py-3 border border-transparent rounded-lg
+            text-base font-medium text-white bg-[#0A3981] hover:bg-[#1F509A]
+            focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary
+            transition-all duration-300 transform hover:scale-105
+            ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}
+          `}
         >
           {isSubmitting ? (
-            <span className="inline-flex items-center">
-              <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
+            <>
+              <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white mr-3" />
               Submitting...
-            </span>
+            </>
           ) : (
-            <span className="inline-flex items-center space-x-2 group">
-              <Send className="h-5 w-5 transform transition-transform group-hover:translate-x-1" />
-              <span>Submit Order</span>
-            </span>
+            <>
+              <Send className="w-5 h-5 mr-2" />
+              Submit Order
+            </>
           )}
         </button>
       </div>
