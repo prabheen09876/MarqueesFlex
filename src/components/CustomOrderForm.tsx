@@ -178,10 +178,7 @@ export default function CustomOrderForm() {
           type="submit"
           disabled={isSubmitting}
           className={`
-            inline-flex items-center px-6 py-3 border border-transparent rounded-lg
-            text-base font-medium text-white bg-[#0A3981] hover:bg-[#1F509A]
-            focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary
-            transition-all duration-300 transform hover:scale-105
+            bg-[#808000] text-white px-6 py-3 rounded-lg font-semibold inline-flex items-center space-x-2 hover:bg-[#606000] transform transition-all duration-300 hover:scale-105 hover:shadow-lg
             ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}
           `}
         >

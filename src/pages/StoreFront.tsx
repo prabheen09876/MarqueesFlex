@@ -111,10 +111,10 @@ export default function StoreFront() {
         </p>
         <button
           onClick={() => {
-            const element = document.getElementById('custom');
+            const element = document.getElementById('products');
             element?.scrollIntoView({ behavior: 'smooth' });
           }}
-          className="bg-[#0A3981] text-white px-6 py-3 rounded-lg font-semibold inline-flex items-center space-x-2 hover:bg-[#1F509A] transform transition-all duration-300 hover:scale-105 hover:shadow-lg"
+          className="bg-[#808000] text-white px-6 py-3 rounded-lg font-semibold inline-flex items-center space-x-2 hover:bg-[#606000] transform transition-all duration-300 hover:scale-105 hover:shadow-lg"
         >
           <MessageSquare className="h-5 w-5" />
           <span>Start Your Custom Order</span>
@@ -126,8 +126,8 @@ export default function StoreFront() {
           Popular Categories
         </h2>
         {categoriesLoading ? (
-          <div className="flex justify-center items-center py-20">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#0A3981]"></div>
+          <div className="flex justify-center items-center min-h-[200px]">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#808000]"></div>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -175,7 +175,7 @@ export default function StoreFront() {
                 animationDelay: `${index * 0.3}s`
               }}
             >
-              <div className="inline-block p-3 rounded-full mb-4 bg-[#0A3981] text-white">
+              <div className="inline-block p-3 rounded-full mb-4 bg-[#808000] text-white">
                 {feature.icon()}
               </div>
               <h3 className="text-xl font-semibold mb-2 text-heading transition-all duration-300 hover:text-primary">
@@ -195,8 +195,8 @@ export default function StoreFront() {
         </h2>
         
         {loading ? (
-          <div className="flex justify-center items-center py-20">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#0A3981]"></div>
+          <div className="flex justify-center items-center min-h-[200px]">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#808000]"></div>
           </div>
         ) : error ? (
           <div className="text-red-500 text-center py-10">

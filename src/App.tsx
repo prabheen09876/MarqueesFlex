@@ -5,6 +5,8 @@ import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import { useState, useEffect } from 'react';
 import { useAuth } from './hooks/useAuth';
+import { initSmoothScrolling } from './utils/lenis';
+import { CartProvider } from './context/CartContext';
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -35,17 +37,23 @@ function App() {
   const location = useLocation();
   const isAdminPage = location.pathname === '/admin';
 
+  useEffect(() => {
+    initSmoothScrolling();
+  }, []);
+
   return (
-    <div className="min-h-screen flex flex-col">
-      {!isAdminPage && <Navbar cartCount={cartCount} onCartClick={() => {}} />}
-      <div className={`flex-grow ${!isAdminPage ? "pt-16" : ""}`}>
-        <Routes>
-          <Route path="/" element={<StoreFront setCartCount={setCartCount} />} />
-          <Route path="/admin" element={<AdminPanel />} />
-        </Routes>
+    <CartProvider>
+      <div className="min-h-screen flex flex-col">
+        {!isAdminPage && <Navbar cartCount={cartCount} onCartClick={() => {}} />}
+        <div className={`flex-grow ${!isAdminPage ? "pt-16" : ""}`}>
+          <Routes>
+            <Route path="/" element={<StoreFront setCartCount={setCartCount} />} />
+            <Route path="/admin" element={<AdminPanel />} />
+          </Routes>
+        </div>
+        {!isAdminPage && <Footer />}
       </div>
-      {!isAdminPage && <Footer />}
-    </div>
+    </CartProvider>
   );
 }
 

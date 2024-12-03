@@ -4,26 +4,26 @@
 @tailwind utilities;
 
 :root {
-  --background-primary: #D4EBF8;
-  --text-primary: #0A3981;
-  --text-secondary: #1F509A;
+  --background-primary: #FFFDD0;
+  --text-primary: #808000;
+  --text-secondary: #606000;
   --accent: #E38E49;
 }
 
 @layer base {
  
   body {
-    @apply antialiased bg-[#D4EBF8] text-[#1F509A] pt-16 bg-noise;
+    @apply antialiased bg-[#FFFDD0] text-[#808000] pt-16 bg-noise;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    @apply text-[#0A3981];
+    @apply text-[#808000];
   }
 }
 
 @layer components {
   .btn-primary {
-    @apply px-6 py-3 bg-[#0A3981] text-white rounded-full font-medium hover:bg-[#1F509A] transition-all duration-300 hover:shadow-lg hover:scale-105;
+    @apply px-6 py-3 bg-[#808000] text-white rounded-full font-medium hover:bg-[#606000] transition-all duration-300 hover:shadow-lg hover:scale-105;
   }
 
   .card {
@@ -31,7 +31,7 @@
   }
 
   .input-field {
-    @apply w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#0A3981] focus:border-transparent transition-all duration-300;
+    @apply w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#808000] focus:border-transparent transition-all duration-300;
   }
 
   .label {
@@ -51,16 +51,16 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: #D4EBF8;
+  background: #FFFDD0;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #0A3981;
+  background: #808000;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #c99b6d;
+  background: #606000;
 }
 
 /* Custom Order Form Styles */
@@ -165,21 +165,21 @@
   justify-content: center;
   gap: 0.5rem;
   width: 100%;
-  background-color: #0A3981;
+  background-color: #808000;
   color: white;
   padding: 1rem;
   border-radius: 0.5rem;
   font-weight: 600;
   transition: all 0.3s ease;
   margin-top: 2rem;
-  border: 2px solid #0A3981;
+  border: 2px solid #808000;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 
 .submit-button:hover:not(:disabled) {
-  background-color: #31578f;
+  background-color: #606000;
   transform: translateY(-2px);
   box-shadow: 0 4px 6px rgba(30, 0, 255, 0.15);
 }
@@ -192,6 +192,6 @@
 .submit-button:disabled {
   opacity: 0.7;
   cursor: not-allowed;
-  background-color: #0A3981;
-  border-color: #0A3981;
+  background-color: #808000;
+  border-color: #808000;
 }

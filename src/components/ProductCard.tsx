@@ -1,12 +1,23 @@
-
 import type { Product } from '../types';
+import { useCart } from '../context/CartContext';
 
 interface ProductCardProps {
   product: Product;
-  onAddToCart: (product: Product) => void;
 }
 
-export default function ProductCard({ product, onAddToCart }: ProductCardProps) {
+export default function ProductCard({ product }: ProductCardProps) {
+  const { addItem } = useCart();
+
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    addItem({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      image: product.image
+    });
+  };
+
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden group transition-all duration-500 hover:shadow-xl hover:scale-105">
       <div className="relative overflow-hidden">
@@ -18,10 +29,7 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
         <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
         <div className="absolute inset-x-0 bottom-0 p-4 translate-y-full transition-transform duration-300 group-hover:translate-y-0">
           <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onAddToCart(product);
-            }}
+            onClick={handleAddToCart}
             className="w-full bg-white/90 text-primary py-2 rounded-lg font-semibold transform transition-all duration-300 hover:bg-primary hover:text-white hover:scale-105 active:scale-95"
           >
             Add to Cart

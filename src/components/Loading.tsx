@@ -47,35 +47,39 @@ export default function Loading() {
         
         {/* Animated progress ring */}
         <div 
-          className="absolute inset-0 border-8 border-[#0A3981] rounded-full transition-all duration-300 ease-out"
+          className="absolute inset-0 border-8 border-[#808000] rounded-full transition-all duration-300 ease-out"
           style={{
-            clipPath: `polygon(50% 50%, -50% -50%, ${progress}% -50%, ${progress}% 150%, -50% 150%)`,
-            transform: `rotate(${rotation}deg)`,
-            transition: 'transform 0.3s ease-out',
+            clipPath: `inset(0 ${100 - progress}% 0 0)`,
           }}
-        ></div>
+        />
         
         {/* Inner circle with gradient background */}
         <div className="absolute inset-2 rounded-full bg-gradient-to-br from-white to-gray-100 flex items-center justify-center shadow-inner">
           <div className="relative">
-            <span className="text-2xl font-bold text-[#0A3981] transition-all duration-300"
-                  style={{ opacity: progress === 100 ? 0 : 1 }}>
-              {progress}%
-            </span>
-            {progress === 100 && (
-              <div className="absolute inset-0 flex items-center justify-center animate-fadeIn">
-                <svg className="w-6 h-6 text-[#0A3981]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+            <div className="text-center">
+              <span className="text-2xl font-bold text-[#808000] transition-all duration-300"
+                style={{ opacity: progress / 100 }}
+              >
+                {progress}%
+              </span>
+              <div className="mt-2">
+                <svg className="w-6 h-6 text-[#808000]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M5 13l4 4L19 7"
+                  />
                 </svg>
               </div>
-            )}
+            </div>
           </div>
         </div>
       </div>
       
       {/* Loading text with gradient and animation */}
-      <div className="mt-4 relative overflow-hidden">
-        <div className="text-lg font-semibold text-[#0A3981] relative z-10 px-4">
+      <div className="mt-4 text-center">
+        <div className="text-lg font-semibold text-[#808000] relative z-10 px-4">
           Loading
           <span className="inline-flex ml-1">
             <span className="animate-bounce delay-0">.</span>
@@ -83,7 +87,9 @@ export default function Loading() {
             <span className="animate-bounce delay-200">.</span>
           </span>
         </div>
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#0A3981]/10 to-transparent animate-shimmer"></div>
+        <div className="relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#808000]/10 to-transparent animate-shimmer"></div>
+        </div>
       </div>
     </div>
   );
