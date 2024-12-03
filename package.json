@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@emailjs/browser": "^4.4.1",
+    "@netlify/functions": "^2.8.2",
     "@studio-freight/lenis": "^1.0.42",
     "@types/pg": "^8.11.10",
     "@vercel/edge-config": "^1.4.0",
