@@ -19,7 +19,7 @@ const Footer: React.FC = () => {
               <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="hover:text-blue-400 transition-colors">
                 <FaTwitter size={24} />
               </a>
-              <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="hover:text-pink-400 transition-colors">
+              <a href="https://www.instagram.com/marqueesflex/" target="_blank" rel="noopener noreferrer" className="hover:text-pink-400 transition-colors">
                 <FaInstagram size={24} />
               </a>
               <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="hover:text-blue-400 transition-colors">
