@@ -7,6 +7,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from './hooks/useAuth';
 import { initSmoothScrolling } from './utils/lenis';
 import { CartProvider } from './context/CartContext';
+import { Toaster } from 'react-hot-toast';
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -43,8 +44,24 @@ function App() {
 
   return (
     <CartProvider>
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          duration: 3000,
+          style: {
+            background: '#333',
+            color: '#fff',
+          },
+          success: {
+            iconTheme: {
+              primary: '#659287',
+              secondary: '#fff',
+            },
+          },
+        }}
+      />
       <div className="min-h-screen flex flex-col">
-        {!isAdminPage && <Navbar cartCount={cartCount} onCartClick={() => {}} />}
+        {!isAdminPage && <Navbar cartCount={cartCount} onCartClick={() => { }} />}
         <div className={`flex-grow ${!isAdminPage ? "pt-16" : ""}`}>
           <Routes>
             <Route path="/" element={<StoreFront setCartCount={setCartCount} />} />

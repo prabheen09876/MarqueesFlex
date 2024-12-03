@@ -26,37 +26,10 @@ export default function Cart({ isOpen, onClose, items, onUpdateQuantity, onRemov
       setIsSubmitting(true);
       console.log('Submitting order with data:', formData);
 
-      const response = await fetch('/api/orders/cart', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...formData,
-          items: items.map(item => ({
-            id: item.id,
-            name: item.name,
-            price: item.price,
-            quantity: item.quantity
-          }))
-        })
-      });
-
-      let data: ApiResponse;
-      try {
-        data = await response.json();
-      } catch (parseError) {
-        console.error('Error parsing response:', parseError);
-        throw new Error('Failed to process server response');
-      }
-
-      if (!response.ok || !data.success) {
-        throw new Error(data.message || 'Failed to place order');
-      }
-
       // Clear cart and close
       items.forEach(item => onRemove(item.id));
       onClose();
+      setShowCheckoutForm(false);
       alert('Order placed successfully! We will contact you soon.');
     } catch (error) {
       console.error('Checkout error:', error);

@@ -18,72 +18,53 @@ export default async function handler(req: Request) {
 
   try {
     const body = await req.json();
-    const { name, email, phone, description } = body;
+    const { orderType, ...orderData } = body;
 
-    if (!name || !email || !phone || !description) {
-      return new Response(
-        JSON.stringify({ success: false, message: 'Missing required fields' }),
-        {
-          status: 400,
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        }
-      );
+    let message = '';
+    
+    if (orderType === 'custom') {
+      const { name, email, phone, category, description } = orderData;
+      message = `🎨 New Custom Order!\n\n` +
+        `👤 Customer: ${name}\n` +
+        `📧 Email: ${email}\n` +
+        `📱 Phone: ${phone}\n` +
+        `🏷️ Category: ${category}\n` +
+        `📝 Description: ${description}`;
+    } else if (orderType === 'cart') {
+      const { name, email, phone, address, notes, items, total } = orderData;
+      const itemsList = items.map((item: any) => 
+        `- ${item.name} x${item.quantity} (₹${item.price * item.quantity})`
+      ).join('\n');
+
+      message = `🛍️ New Cart Order!\n\n` +
+        `👤 Customer: ${name}\n` +
+        `📧 Email: ${email}\n` +
+        `📱 Phone: ${phone}\n` +
+        `📍 Address: ${address}\n` +
+        `\n🛒 Items:\n${itemsList}\n` +
+        `\n💰 Total: ₹${total}\n` +
+        `📝 Notes: ${notes || 'None'}`;
     }
 
-    const message = `
-🛍️ <b>New Order Received!</b>
-
-👤 <b>Customer Details:</b>
-Name: ${name}
-Email: ${email}
-Phone: ${phone}
-
-📝 <b>Project Description:</b>
-${description}
-
-📅 Order Date: ${new Date().toLocaleString()}
-    `;
-
-    const telegramResponse = await fetch(
-      `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          chat_id: TELEGRAM_CHAT_ID,
-          text: message,
-          parse_mode: 'HTML',
-        }),
-      }
-    );
-
-    const telegramData = await telegramResponse.json();
+    const telegramApiUrl = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
+    const telegramResponse = await fetch(telegramApiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        chat_id: TELEGRAM_CHAT_ID,
+        text: message,
+        parse_mode: 'HTML',
+      }),
+    });
 
     if (!telegramResponse.ok) {
-      console.error('Telegram API Error:', telegramData);
-      return new Response(
-        JSON.stringify({
-          success: false,
-          message: 'Failed to send message to Telegram',
-        }),
-        {
-          status: 500,
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        }
-      );
+      throw new Error('Failed to send Telegram message');
     }
 
     return new Response(
-      JSON.stringify({
-        success: true,
-        message: 'Order submitted successfully',
-      }),
+      JSON.stringify({ success: true, message: 'Order notification sent successfully' }),
       {
         status: 200,
         headers: {
@@ -92,12 +73,9 @@ ${description}
       }
     );
   } catch (error) {
-    console.error('Server error:', error);
+    console.error('Error sending telegram message:', error);
     return new Response(
-      JSON.stringify({
-        success: false,
-        message: 'Internal server error',
-      }),
+      JSON.stringify({ success: false, message: 'Failed to send order notification' }),
       {
         status: 500,
         headers: {

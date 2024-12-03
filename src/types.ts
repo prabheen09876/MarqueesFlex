@@ -4,11 +4,15 @@ export interface Product {
   description: string;
   price: number;
   image: string;
-  category: 'banner' | 'neon' | 'frame' | 'flex' | 'anime' | 'aesthetic' | 'cars';
+  category: string;
 }
 
-export interface CartItem extends Product {
+export interface CartItem {
+  id: string;
+  name: string;
+  price: number;
   quantity: number;
+  image?: string;
 }
 
 export interface CustomOrder {
@@ -19,4 +23,11 @@ export interface CustomOrder {
   images?: File[];
   status?: string;
   created_at?: string;
+}
+
+export interface Category {
+  id: string;
+  name: string;
+  description: string;
+  image?: string;
 }
