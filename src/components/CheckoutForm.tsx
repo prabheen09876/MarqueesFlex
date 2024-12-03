@@ -39,22 +39,23 @@ export default function CheckoutForm({ items, total, onSubmit, onCancel, isSubmi
   const validateField = (name: string, value: string): string => {
     switch (name) {
       case 'name':
-        if (!value.trim()) return 'Name is required';
+        if (!value || !value.trim()) return 'Name is required';
         if (value.trim().length < 2) return 'Name must be at least 2 characters';
         if (value.trim().length > 50) return 'Name must be less than 50 characters';
         return '';
       case 'email':
-        if (!value.trim()) return 'Email is required';
-        if (!EMAIL_REGEX.test(value)) return 'Please enter a valid email address';
+        if (!value || !value.trim()) return 'Email is required';
+        if (!value.includes('@') || !value.includes('.')) return 'Please enter a valid email address';
         return '';
       case 'phone':
-        if (!value.trim()) return 'Phone is required';
-        if (!PHONE_REGEX.test(value.replace(/[-()\s]/g, ''))) {
-          return 'Please enter a valid 10-digit Indian phone number';
+        if (!value || !value.trim()) return 'Phone is required';
+        const cleanPhone = value.replace(/[-()\s]/g, '');
+        if (!/^[0-9]{10}$/.test(cleanPhone)) {
+          return 'Please enter a valid 10-digit phone number';
         }
         return '';
       case 'address':
-        if (!value.trim()) return 'Address is required';
+        if (!value || !value.trim()) return 'Address is required';
         if (value.trim().length < 10) return 'Please enter a complete address';
         if (value.trim().length > 200) return 'Address is too long';
         return '';
@@ -107,6 +108,11 @@ export default function CheckoutForm({ items, total, onSubmit, onCancel, isSubmi
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Touch all fields to show validation errors
+    const allFields = ['name', 'email', 'phone', 'address'];
+    const newTouched = allFields.reduce((acc, field) => ({ ...acc, [field]: true }), {});
+    setTouched(newTouched);
 
     if (!validateForm()) {
       toast.error('Please fix the errors in the form');
