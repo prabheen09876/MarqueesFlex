@@ -1,9 +1,9 @@
 import React from 'react';
-import { FaFacebook, FaTwitter, FaInstagram, FaLinkedin } from 'react-icons/fa';
+import { FaYoutube, FaInstagram } from 'react-icons/fa';
 
 const Footer: React.FC = () => {
   return (
-    <footer id='about' className="bg-gray-900 text-white">
+    <footer id='about' className="bg-[#284028] text-white">
       <div className="container mx-auto px-4 py-12">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* Company Info & Social Media */}
@@ -13,19 +13,30 @@ const Footer: React.FC = () => {
               Your trusted partner for premium marquee solutions.
             </p>
             <div className="flex space-x-4 mt-4">
-              <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="hover:text-blue-400 transition-colors">
-                <FaFacebook size={24} />
+              <a href="https://www.youtube.com/@marqueesflex" target="_blank" rel="noopener noreferrer" className="hover:text-red-600 transition-colors">
+                <FaYoutube size={24} />
               </a>
-              <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="hover:text-blue-400 transition-colors">
-                <FaTwitter size={24} />
-              </a>
+          
+           
               <a href="https://www.instagram.com/marqueesflex/" target="_blank" rel="noopener noreferrer" className="hover:text-pink-400 transition-colors">
                 <FaInstagram size={24} />
               </a>
-              <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="hover:text-blue-400 transition-colors">
-                <FaLinkedin size={24} />
-              </a>
+          
             </div>
+{/* Developer Profile */}
+<div className="space-y-4">
+  <h3 className="text-xl text-gray-50 font-bold mb-4">Developer</h3>
+  <p className="text-gray-300">Connect with our developer:</p>
+  <a 
+    href="https://www.linkedin.com/in/prabheen09876" 
+    target="_blank" 
+    rel="noopener noreferrer" 
+    className="text-blue-400 hover:text-blue-300 transition-colors"
+  >
+    LinkedIn Profile
+  </a>
+</div>
+            
           </div>
 
           {/* Address */}
