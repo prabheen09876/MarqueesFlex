@@ -1,5 +1,5 @@
 import React from 'react';
-import { FaYoutube, FaInstagram } from 'react-icons/fa';
+import { FaYoutube, FaInstagram, FaTwitter } from 'react-icons/fa';
 
 const Footer: React.FC = () => {
   return (
@@ -15,6 +15,9 @@ const Footer: React.FC = () => {
             <div className="flex space-x-4 mt-4">
               <a href="https://www.youtube.com/@marqueesflex" target="_blank" rel="noopener noreferrer" className="hover:text-red-600 transition-colors">
                 <FaYoutube size={24} />
+              </a>
+              <a href="https://x.com/marqueesflex" target="_blank" rel="noopener noreferrer" className="hover:text-blue-400 transition-colors">
+                <FaTwitter size={24} />
               </a>
           
            
