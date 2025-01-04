@@ -2,21 +2,25 @@
   functions = "netlify/functions"
   publish = "dist"
 
-[functions]
-  node_bundler = "esbuild"
-  included_files = ["netlify/functions/**"]
-
 [[redirects]]
-  from = "/api/sendTelegram"
-  to = "/.netlify/functions/notify-order"
+  from = "/.netlify/functions/*"
+  to = "/.netlify/functions/:splat"
   status = 200
-
-[[redirects]]
-  from = "/api/notify-order"
-  to = "/.netlify/functions/notify-order"
-  status = 200
+  force = true
+  headers = {Access-Control-Allow-Origin = "*"}
 
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
+
+[functions]
+  node_bundler = "esbuild"
+  external_node_modules = ["node-fetch"]
+
+[dev]
+  framework = "#custom"
+  command = "npm run dev"
+  targetPort = 5174
+  port = 8888
+  publish = "dist"

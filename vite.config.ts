@@ -8,20 +8,14 @@ export default defineConfig({
     exclude: ['lucide-react'],
   },
   server: {
-    port: 5173,
+    port: 5174,
     proxy: {
-      '/api': {
-        target: 'http://localhost:4000',
-        changeOrigin: true,
-        secure: false,
-      },
-      '/.netlify/functions/': {
+      '/.netlify/functions': {
         target: 'http://localhost:8888',
         changeOrigin: true,
         secure: false,
-        rewrite: (path) => path.replace(/^\/.netlify\/functions/, '')
-      }
-    }
+      },
+    },
   },
   build: {
     outDir: 'dist',

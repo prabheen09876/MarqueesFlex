@@ -1,5 +1,5 @@
 import { Handler } from '@netlify/functions';
-import TelegramBot from 'node-telegram-bot-api';
+import fetch from 'node-fetch';
 
 const token = process.env.TELEGRAM_BOT_TOKEN;
 const chatId = process.env.TELEGRAM_CHAT_ID;
@@ -8,18 +8,39 @@ if (!token || !chatId) {
     throw new Error('Missing Telegram configuration');
 }
 
-const bot = new TelegramBot(token, { polling: false });
+const sendTelegramMessage = async (text: string) => {
+    const response = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            chat_id: chatId,
+            text: text,
+            parse_mode: 'HTML'
+        })
+    });
+
+    if (!response.ok) {
+        const error = await response.json();
+        throw new Error(JSON.stringify(error));
+    }
+
+    return response.json();
+};
+
+const corsHeaders = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS'
+};
 
 const handler: Handler = async (event) => {
-    // Enable CORS
+    // Handle preflight requests
     if (event.httpMethod === 'OPTIONS') {
         return {
-            statusCode: 200,
-            headers: {
-                'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Headers': 'Content-Type',
-                'Access-Control-Allow-Methods': 'POST, OPTIONS'
-            },
+            statusCode: 204,
+            headers: corsHeaders,
             body: ''
         };
     }
@@ -28,9 +49,7 @@ const handler: Handler = async (event) => {
         if (event.httpMethod !== 'POST') {
             return {
                 statusCode: 405,
-                headers: {
-                    'Access-Control-Allow-Origin': '*'
-                },
+                headers: corsHeaders,
                 body: JSON.stringify({
                     success: false,
                     error: 'Method not allowed'
@@ -43,9 +62,7 @@ const handler: Handler = async (event) => {
         if (!message) {
             return {
                 statusCode: 400,
-                headers: {
-                    'Access-Control-Allow-Origin': '*'
-                },
+                headers: corsHeaders,
                 body: JSON.stringify({
                     success: false,
                     error: 'Message is required'
@@ -53,31 +70,28 @@ const handler: Handler = async (event) => {
             };
         }
 
-        console.log('Sending Telegram message:', {
-            chatId,
+        console.log('Attempting to send message:', {
             messageLength: message.length,
-            tokenExists: !!token
+            chatId: chatId,
+            hasToken: !!token
         });
 
-        await bot.sendMessage(chatId, message, { parse_mode: 'HTML' });
+        const result = await sendTelegramMessage(message);
 
         return {
             statusCode: 200,
-            headers: {
-                'Access-Control-Allow-Origin': '*'
-            },
+            headers: corsHeaders,
             body: JSON.stringify({
                 success: true,
-                message: 'Notification sent successfully'
+                message: 'Notification sent successfully',
+                result
             })
         };
     } catch (error) {
         console.error('Telegram notification error:', error);
         return {
             statusCode: 500,
-            headers: {
-                'Access-Control-Allow-Origin': '*'
-            },
+            headers: corsHeaders,
             body: JSON.stringify({
                 success: false,
                 error: 'Failed to send notification',

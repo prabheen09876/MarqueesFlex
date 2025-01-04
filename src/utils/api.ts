@@ -1,7 +1,15 @@
+const getApiUrl = () => {
+    if (import.meta.env.PROD) {
+        return 'https://marqueesflex.netlify.app/.netlify/functions';
+    }
+    // For local development
+    return '/.netlify/functions';
+};
+
 export const sendTelegramNotification = async (message: string) => {
     try {
-        // Try the new endpoint first
-        const response = await fetch('/.netlify/functions/notify-order', {
+        const baseUrl = getApiUrl();
+        const response = await fetch(`${baseUrl}/notify-order`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -9,18 +17,16 @@ export const sendTelegramNotification = async (message: string) => {
             body: JSON.stringify({ message })
         });
 
-        if (!response.ok) {
-            throw new Error('Failed to send notification');
-        }
-
         const data = await response.json();
-        if (!data.success) {
+
+        if (!response.ok || !data.success) {
+            console.error('Telegram API Error:', data);
             throw new Error(data.error || 'Failed to send notification');
         }
 
         return data;
     } catch (error) {
         console.error('API Error:', error);
-        throw error;
+        throw new Error(error instanceof Error ? error.message : 'Failed to send notification');
     }
 }; 
