@@ -3,13 +3,30 @@ import { db, auth } from '../firebase/config';
 
 const COLLECTION_NAME = 'categories';
 
+export interface Category {
+  id: string;
+  name: string;
+  description: string;
+  image: string;
+  featured: boolean;
+}
+
 export async function getCategories() {
   try {
     const querySnapshot = await getDocs(collection(db, COLLECTION_NAME));
-    const categories = querySnapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    }));
+    const categories: Category[] = [];
+
+    querySnapshot.forEach((doc) => {
+      const data = doc.data();
+      categories.push({
+        id: doc.id,
+        name: data.name,
+        description: data.description,
+        image: data.image,
+        featured: data.featured
+      });
+    });
+
     return categories;
   } catch (error: any) {
     console.error('Error getting categories:', error);
@@ -17,7 +34,7 @@ export async function getCategories() {
   }
 }
 
-export async function addCategory(category: { name: string }) {
+export async function addCategory(category: Omit<Category, 'id'>) {
   try {
     // Check authentication
     if (!auth.currentUser) {

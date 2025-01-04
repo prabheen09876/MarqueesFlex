@@ -10,6 +10,7 @@ import { CartProvider } from './context/CartContext';
 import { Toaster } from 'react-hot-toast';
 import { auth } from './firebase/config';
 import { useNavigate } from 'react-router-dom';
+import Login from './components/Login';
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -78,7 +79,15 @@ function App() {
         <div className={`flex-grow ${!isAdminPage ? "pt-16" : ""}`}>
           <Routes>
             <Route path="/" element={<StoreFront setCartCount={setCartCount} />} />
-            <Route path="/admin" element={<AdminPanel />} />
+            <Route path="/login" element={<Login />} />
+            <Route
+              path="/admin"
+              element={
+                <PrivateRoute>
+                  <AdminPanel />
+                </PrivateRoute>
+              }
+            />
           </Routes>
         </div>
         {!isAdminPage && <Footer />}

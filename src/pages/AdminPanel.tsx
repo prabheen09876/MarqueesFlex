@@ -6,6 +6,8 @@ import { useAuth } from '../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { addProduct, updateProduct, deleteProduct, getProducts } from '../services/productService';
 import { addCategory, deleteCategory, getCategories } from '../services/categoryService';
+import { auth } from '../firebase/config';
+import { toast } from 'react-hot-toast';
 
 const collections = ['our-products', 'car', 'anime', 'aesthetic'];
 
@@ -35,11 +37,32 @@ export default function AdminPanel() {
   });
 
   useEffect(() => {
-    if (user) {
-      fetchProducts();
-      fetchCategories();
-    }
+    const fetchData = async () => {
+      if (user) {
+        try {
+          await Promise.all([
+            fetchProducts(),
+            fetchCategories()
+          ]);
+        } catch (error) {
+          console.error('Error fetching data:', error);
+          // Handle error appropriately
+        }
+      }
+    };
+
+    fetchData();
   }, [user]);
+
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      if (!user) {
+        navigate('/login');
+      }
+    });
+
+    return () => unsubscribe();
+  }, [navigate]);
 
   const fetchProducts = async () => {
     try {
@@ -56,11 +79,16 @@ export default function AdminPanel() {
 
   const fetchCategories = async () => {
     try {
+      setIsLoading(true);
       const fetchedCategories = await getCategories();
       setCategories(fetchedCategories);
     } catch (error: any) {
       console.error('Error fetching categories:', error);
       setError(error.message);
+      // Optionally show a toast notification
+      toast.error('Failed to fetch categories');
+    } finally {
+      setIsLoading(false);
     }
   };
 
