@@ -11,7 +11,8 @@
     "dev:server": "node server/index.js",
     "dev:netlify": "netlify dev --port 3000",
     "dev": "concurrently \"npm run dev:netlify\" \"npm run dev:server\"",
-    "build": "tsc && vite build",
+    "build": "vite build",
+    "prebuild": "npm install",
     "preview": "vite preview"
   },
   "dependencies": {

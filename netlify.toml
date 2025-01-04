@@ -1,6 +1,11 @@
 [build]
+  command = "npm run build"
   functions = "netlify/functions"
   publish = "dist"
+
+[functions]
+  node_bundler = "esbuild"
+  external_node_modules = ["node-fetch"]
 
 [[redirects]]
   from = "/.netlify/functions/*"
@@ -14,13 +19,6 @@
   to = "/index.html"
   status = 200
 
-[functions]
-  node_bundler = "esbuild"
-  external_node_modules = ["node-fetch"]
-
-[dev]
-  framework = "#custom"
-  command = "npm run dev"
-  targetPort = 5174
-  port = 8888
-  publish = "dist"
+[build.environment]
+  NODE_VERSION = "18"
+  NPM_FLAGS = "--legacy-peer-deps"
