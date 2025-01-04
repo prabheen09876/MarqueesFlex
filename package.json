@@ -9,7 +9,7 @@
   "scripts": {
     "dev:vite": "vite",
     "dev:server": "node server/index.js",
-    "dev:netlify": "netlify dev --port 8888",
+    "dev:netlify": "netlify dev --port 3000",
     "dev": "concurrently \"npm run dev:netlify\" \"npm run dev:server\"",
     "build": "tsc && vite build",
     "preview": "vite preview"
@@ -33,6 +33,7 @@
     "lucide-react": "^0.344.0",
     "multer": "^1.4.5-lts.1",
     "node-fetch": "^3.3.2",
+    "node-telegram-bot-api": "^0.66.0",
     "nodemailer": "^6.9.16",
     "pg": "^8.13.1",
     "puppeteer": "^19.7.0",

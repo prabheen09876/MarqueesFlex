@@ -1,6 +1,23 @@
 import { Request } from '@vercel/edge';
+import { CartItem } from '../src/types';
+
+interface OrderData {
+    orderType: 'cart' | 'custom';
+    name: string;
+    email: string;
+    phone: string;
+    address?: string;
+    notes?: string;
+    items?: CartItem[];
+    total?: number;
+    category?: string;
+    description?: string;
+}
 
 export default async function handler(req: Request) {
+  const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || process.env.VITE_TELEGRAM_BOT_TOKEN;
+  const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID || process.env.VITE_TELEGRAM_CHAT_ID;
+
   if (req.method !== 'POST') {
     return new Response(
       JSON.stringify({ success: false, message: 'Method not allowed' }),
@@ -13,8 +30,24 @@ export default async function handler(req: Request) {
     );
   }
 
-  const TELEGRAM_BOT_TOKEN = '7885175271:AAFq14mUhtzxuweV_DCAHRmKYk3r1vPVKk8';
-  const TELEGRAM_CHAT_ID = '1157438477';
+  if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID) {
+    return new Response(
+      JSON.stringify({ 
+        success: false, 
+        message: 'Telegram configuration missing',
+        details: {
+          botToken: !!TELEGRAM_BOT_TOKEN,
+          chatId: !!TELEGRAM_CHAT_ID
+        }
+      }),
+      {
+        status: 500,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+  }
 
   try {
     const body = await req.json();
@@ -29,7 +62,8 @@ export default async function handler(req: Request) {
         `📧 Email: ${email}\n` +
         `📱 Phone: ${phone}\n` +
         `🏷️ Category: ${category}\n` +
-        `📝 Description: ${description}`;
+        `📝 Description: ${description}\n` +
+        `\n⏰ Time: ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}`;
     } else if (orderType === 'cart') {
       const { name, email, phone, address, notes, items, total } = orderData;
       const itemsList = items.map((item: any) => 
@@ -43,7 +77,8 @@ export default async function handler(req: Request) {
         `📍 Address: ${address}\n` +
         `\n🛒 Items:\n${itemsList}\n` +
         `\n💰 Total: ₹${total}\n` +
-        `📝 Notes: ${notes || 'None'}`;
+        `📝 Notes: ${notes || 'None'}\n` +
+        `\n⏰ Time: ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}`;
     }
 
     const telegramApiUrl = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
@@ -59,12 +94,18 @@ export default async function handler(req: Request) {
       }),
     });
 
+    const telegramResponseText = await telegramResponse.text();
+
     if (!telegramResponse.ok) {
-      throw new Error('Failed to send Telegram message');
+      throw new Error(`Failed to send Telegram message. Status: ${telegramResponse.status}, Response: ${telegramResponseText}`);
     }
 
     return new Response(
-      JSON.stringify({ success: true, message: 'Order notification sent successfully' }),
+      JSON.stringify({ 
+        success: true, 
+        message: 'Order notification sent successfully',
+        telegramResponse: telegramResponseText 
+      }),
       {
         status: 200,
         headers: {
@@ -75,7 +116,11 @@ export default async function handler(req: Request) {
   } catch (error) {
     console.error('Error sending telegram message:', error);
     return new Response(
-      JSON.stringify({ success: false, message: 'Failed to send order notification' }),
+      JSON.stringify({ 
+        success: false, 
+        message: error instanceof Error ? error.message : 'Failed to send order notification',
+        error: String(error)
+      }),
       {
         status: 500,
         headers: {

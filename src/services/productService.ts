@@ -1,4 +1,4 @@
-import { 
+import {
   collection,
   addDoc,
   updateDoc,
@@ -19,7 +19,7 @@ export async function addProduct(product: Omit<Product, 'id'>) {
     if (!auth.currentUser) {
       throw new Error('You must be logged in to add products');
     }
-    
+
     console.log('Current user attempting to add product:', {
       uid: auth.currentUser.uid,
       email: auth.currentUser.email
@@ -39,8 +39,13 @@ export async function addProduct(product: Omit<Product, 'id'>) {
 
 export async function updateProduct(id: string, product: Partial<Product>) {
   try {
-    const docRef = doc(db, COLLECTION_NAME, id);
-    await updateDoc(docRef, {
+    const user = auth.currentUser;
+    if (!user) {
+      throw new Error('User must be authenticated to update products');
+    }
+
+    const productRef = doc(db, COLLECTION_NAME, id);
+    await updateDoc(productRef, {
       ...product,
       updatedAt: new Date().toISOString()
     });
@@ -65,14 +70,14 @@ export async function deleteProduct(id: string) {
 export async function getProducts(category?: string) {
   try {
     let q = collection(db, COLLECTION_NAME);
-    
+
     if (category) {
       q = query(collection(db, COLLECTION_NAME), where('category', '==', category));
     }
 
     const querySnapshot = await getDocs(q);
     const products: Product[] = [];
-    
+
     querySnapshot.forEach((doc) => {
       const data = doc.data() as DocumentData;
       products.push({
