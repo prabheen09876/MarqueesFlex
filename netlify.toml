@@ -1,14 +1,16 @@
 [build]
   functions = "netlify/functions"
+  publish = "dist"
+
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
 
 [functions]
   node_bundler = "esbuild"
-
-[[redirects]]
-  from = "/api/sendTelegram"
-  to = "/.netlify/functions/sendTelegram"
-  status = 200
-
-[context.production.environment]
-  TELEGRAM_BOT_TOKEN = "7885175271:AAEXwydCMX6E78Dvt2uXPR9qn64w1VCe2tM"
-  TELEGRAM_CHAT_ID = "6967298820"

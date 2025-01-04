@@ -3,7 +3,7 @@ import { ShoppingCart, X, Minus, Plus, Trash2 } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import CheckoutForm from './CheckoutForm';
 import { toast } from 'react-hot-toast';
-import { sendTelegramMessage } from '../api/sendTelegram';
+import { sendTelegramNotification } from '../utils/api';
 
 interface CartModalProps {
   isOpen: boolean;
@@ -33,42 +33,32 @@ const CartModal: React.FC<CartModalProps> = ({ isOpen, onClose }) => {
     return numPrice.toFixed(2);
   };
 
-  const handleCheckout = async (formData: any) => {
+  const handleCheckout = async () => {
     try {
       setIsSubmitting(true);
-      const orderData = {
-        orderType: 'cart' as const,
-        ...formData,
-        items: items.map(item => ({
-          id: item.id,
-          name: item.name,
-          price: item.price,
-          quantity: item.quantity,
-          image: item.image
-        })),
-        total: totalPrice
-      };
 
-      await sendTelegramMessage(orderData);
+      // Prepare order message
+      const orderMessage = `
+🛍️ New Order!
+${items.map(item => `
+- ${item.name}
+  Quantity: ${item.quantity}
+  Price: ₹${formatPrice(item.price)}
+`).join('')}
 
-      // Store order in localStorage
-      const orders = JSON.parse(localStorage.getItem('orders') || '[]');
-      const newOrder = {
-        ...orderData,
-        id: Date.now().toString(),
-        status: 'pending',
-        created_at: new Date().toISOString(),
-      };
-      orders.push(newOrder);
-      localStorage.setItem('orders', JSON.stringify(orders));
+Total: ₹${formatPrice(totalPrice)}
+      `;
 
-      // Clear cart and close modal
+      // Use the utility function instead of direct fetch
+      await sendTelegramNotification(orderMessage);
+
+      // Clear cart and show success message
       clearCart();
+      toast.success('Order placed successfully!');
       onClose();
-      toast.success('Order placed successfully! We will contact you soon.');
     } catch (error) {
       console.error('Checkout error:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to place order. Please try again.');
+      toast.error('Failed to process order. Please try again.');
     } finally {
       setIsSubmitting(false);
     }

@@ -26,7 +26,13 @@ const handler: Handler = async (event) => {
 
     try {
         if (event.httpMethod !== 'POST') {
-            return { statusCode: 405, body: 'Method Not Allowed' };
+            return {
+                statusCode: 405,
+                headers: {
+                    'Access-Control-Allow-Origin': '*'
+                },
+                body: JSON.stringify({ error: 'Method not allowed' })
+            };
         }
 
         const { message } = JSON.parse(event.body || '{}');
@@ -34,6 +40,9 @@ const handler: Handler = async (event) => {
         if (!message) {
             return {
                 statusCode: 400,
+                headers: {
+                    'Access-Control-Allow-Origin': '*'
+                },
                 body: JSON.stringify({ error: 'Message is required' })
             };
         }
@@ -45,7 +54,10 @@ const handler: Handler = async (event) => {
             headers: {
                 'Access-Control-Allow-Origin': '*'
             },
-            body: JSON.stringify({ message: 'Notification sent successfully' })
+            body: JSON.stringify({
+                success: true,
+                message: 'Notification sent successfully'
+            })
         };
     } catch (error) {
         console.error('Telegram notification error:', error);
@@ -55,6 +67,7 @@ const handler: Handler = async (event) => {
                 'Access-Control-Allow-Origin': '*'
             },
             body: JSON.stringify({
+                success: false,
                 error: 'Failed to send notification',
                 details: error instanceof Error ? error.message : 'Unknown error'
             })
@@ -62,4 +75,4 @@ const handler: Handler = async (event) => {
     }
 };
 
-export { handler };
+export { handler }; 
