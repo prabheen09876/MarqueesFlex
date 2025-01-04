@@ -14,6 +14,12 @@ export default defineConfig({
         target: 'http://localhost:4000',
         changeOrigin: true,
         secure: false,
+      },
+      '/.netlify/functions/': {
+        target: 'http://localhost:8888',
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path.replace(/^\/.netlify\/functions/, '')
       }
     }
   },

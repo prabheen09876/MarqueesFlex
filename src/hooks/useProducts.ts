@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { getProducts } from '../services/productService';
 import type { Product } from '../types';
+import { auth } from '../firebase/config';
 
 export function useProducts() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -10,6 +11,9 @@ export function useProducts() {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
+        // Log authentication state
+        console.log('Current user:', auth.currentUser?.email);
+        
         setLoading(true);
         const fetchedProducts = await getProducts();
         console.log('Fetched products:', fetchedProducts); // Debug log

@@ -3,22 +3,32 @@ import {
   addDoc,
   updateDoc,
   deleteDoc,
-  doc,
   getDocs,
   query,
   where,
+  doc,
   DocumentData
 } from 'firebase/firestore';
-import { db } from '../firebase/config';
+import { db, auth } from '../firebase/config';
 import type { Product } from '../types';
 
 const COLLECTION_NAME = 'products';
 
 export async function addProduct(product: Omit<Product, 'id'>) {
   try {
+    if (!auth.currentUser) {
+      throw new Error('You must be logged in to add products');
+    }
+    
+    console.log('Current user attempting to add product:', {
+      uid: auth.currentUser.uid,
+      email: auth.currentUser.email
+    });
+
     const docRef = await addDoc(collection(db, COLLECTION_NAME), {
       ...product,
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+      createdBy: auth.currentUser.uid
     });
     return { id: docRef.id, ...product };
   } catch (error: any) {

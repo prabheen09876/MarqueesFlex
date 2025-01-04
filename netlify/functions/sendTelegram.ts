@@ -1,8 +1,8 @@
 import { Handler } from '@netlify/functions';
 import { CartItem } from '../../src/types';
 
-const TELEGRAM_BOT_TOKEN = '7885175271:AAFq14mUhtzxuweV_DCAHRmKYk3r1vPVKk8';
-const TELEGRAM_CHAT_ID = '1157438477';
+const TELEGRAM_BOT_TOKEN = process.env.VITE_TELEGRAM_BOT_TOKEN;
+const TELEGRAM_CHAT_ID = process.env.VITE_TELEGRAM_CHAT_ID;
 
 interface OrderData {
     orderType: 'cart' | 'custom';
@@ -23,6 +23,13 @@ const handler: Handler = async (event) => {
         return {
             statusCode: 405,
             body: JSON.stringify({ message: 'Method not allowed' }),
+        };
+    }
+
+    if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID) {
+        return {
+            statusCode: 500,
+            body: JSON.stringify({ message: 'Telegram configuration missing' }),
         };
     }
 
