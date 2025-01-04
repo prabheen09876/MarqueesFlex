@@ -8,6 +8,8 @@ import { useAuth } from './hooks/useAuth';
 import { initSmoothScrolling } from './utils/lenis';
 import { CartProvider } from './context/CartContext';
 import { Toaster } from 'react-hot-toast';
+import { auth } from './firebase/config';
+import { useNavigate } from 'react-router-dom';
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -37,10 +39,21 @@ function App() {
   const [cartCount, setCartCount] = useState(0);
   const location = useLocation();
   const isAdminPage = location.pathname === '/admin';
+  const navigate = useNavigate();
 
   useEffect(() => {
     initSmoothScrolling();
   }, []);
+
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      if (!user && window.location.pathname.includes('/admin')) {
+        navigate('/login');
+      }
+    });
+
+    return () => unsubscribe();
+  }, [navigate]);
 
   return (
     <CartProvider>

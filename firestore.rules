@@ -1,9 +1,15 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Allow authenticated users to read and write
+    // Allow authenticated users to read and write products
     match /products/{productId} {
       allow read: if true;  // Anyone can read
+      allow write: if request.auth != null;  // Only authenticated users can write
+    }
+    
+    // Add rules for categories collection
+    match /categories/{categoryId} {
+      allow read: if true;  // Anyone can read categories
       allow write: if request.auth != null;  // Only authenticated users can write
     }
   }
