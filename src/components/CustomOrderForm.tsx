@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Send, Loader2 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
-import { sendTelegramMessage } from '../api/sendTelegram';
+import { sendTelegramNotification } from '../utils/api';
 
 const PHONE_REGEX = /^[6-9]\d{9}$/;
 const EMAIL_REGEX = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
@@ -115,50 +115,26 @@ export default function CustomOrderForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    const allFields = ['name', 'email', 'phone', 'category', 'description'];
-    const newTouched = allFields.reduce((acc, field) => ({ ...acc, [field]: true }), {});
-    setTouched(newTouched);
-
-    if (!validateForm()) {
-      toast.error('Please fix the errors in the form');
-      return;
-    }
-
-    setIsSubmitting(true);
-
     try {
-      await sendTelegramMessage({
-        orderType: 'custom',
-        ...formData
-      });
+      setIsSubmitting(true);
 
-      // Store order in localStorage
-      const orders = JSON.parse(localStorage.getItem('customOrders') || '[]');
-      const newOrder = {
-        ...formData,
-        id: Date.now().toString(),
-        status: 'pending',
-        created_at: new Date().toISOString(),
-      };
-      orders.push(newOrder);
-      localStorage.setItem('customOrders', JSON.stringify(orders));
+      const orderMessage = `
+🎯 New Custom Order!
+Customer: ${formData.name}
+Phone: ${formData.phone}
+Email: ${formData.email}
+Event Date: ${formData.eventDate}
+Requirements: ${formData.requirements}
+      `;
 
-      toast.success('Custom order submitted successfully! We will contact you soon.');
+      await sendTelegramNotification(orderMessage);
 
-      // Reset form
-      setFormData({
-        name: '',
-        email: '',
-        phone: '',
-        category: 'Select Category',
-        description: '',
-      });
-      setTouched({});
-      setErrors({});
+      // Reset form and show success
+      resetForm();
+      toast.success('Order submitted successfully!');
     } catch (error) {
       console.error('Error submitting custom order:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to submit order. Please try again.');
+      toast.error('Failed to submit order. Please try again.');
     } finally {
       setIsSubmitting(false);
     }

@@ -1,5 +1,6 @@
 export const sendTelegramNotification = async (message: string) => {
     try {
+        // Try the new endpoint first
         const response = await fetch('/.netlify/functions/notify-order', {
             method: 'POST',
             headers: {
@@ -9,11 +10,15 @@ export const sendTelegramNotification = async (message: string) => {
         });
 
         if (!response.ok) {
-            const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-            throw new Error(errorData.error || 'Failed to send notification');
+            throw new Error('Failed to send notification');
         }
 
-        return response.json();
+        const data = await response.json();
+        if (!data.success) {
+            throw new Error(data.error || 'Failed to send notification');
+        }
+
+        return data;
     } catch (error) {
         console.error('API Error:', error);
         throw error;

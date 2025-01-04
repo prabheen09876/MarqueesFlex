@@ -31,7 +31,10 @@ const handler: Handler = async (event) => {
                 headers: {
                     'Access-Control-Allow-Origin': '*'
                 },
-                body: JSON.stringify({ error: 'Method not allowed' })
+                body: JSON.stringify({
+                    success: false,
+                    error: 'Method not allowed'
+                })
             };
         }
 
@@ -43,9 +46,18 @@ const handler: Handler = async (event) => {
                 headers: {
                     'Access-Control-Allow-Origin': '*'
                 },
-                body: JSON.stringify({ error: 'Message is required' })
+                body: JSON.stringify({
+                    success: false,
+                    error: 'Message is required'
+                })
             };
         }
+
+        console.log('Sending Telegram message:', {
+            chatId,
+            messageLength: message.length,
+            tokenExists: !!token
+        });
 
         await bot.sendMessage(chatId, message, { parse_mode: 'HTML' });
 
