@@ -6,7 +6,7 @@ const chatId = process.env.TELEGRAM_CHAT_ID;
 
 const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization, Accept',
     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
     'Content-Type': 'application/json'
 };
@@ -16,6 +16,12 @@ const sendTelegramMessage = async (text: string) => {
         if (!token || !chatId) {
             throw new Error('Missing Telegram configuration');
         }
+
+        console.log('Sending to Telegram:', {
+            chatId,
+            messageLength: text.length,
+            hasToken: !!token
+        });
 
         const response = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
             method: 'POST',
@@ -30,6 +36,7 @@ const sendTelegramMessage = async (text: string) => {
         });
 
         const data = await response.json();
+        console.log('Telegram API response:', data);
 
         if (!response.ok) {
             throw new Error(data.description || 'Failed to send Telegram message');
@@ -43,6 +50,13 @@ const sendTelegramMessage = async (text: string) => {
 };
 
 const handler: Handler = async (event) => {
+    console.log('Received request:', {
+        method: event.httpMethod,
+        path: event.path,
+        headers: event.headers
+    });
+
+    // Handle CORS preflight
     if (event.httpMethod === 'OPTIONS') {
         return {
             statusCode: 204,
@@ -63,11 +77,14 @@ const handler: Handler = async (event) => {
             };
         }
 
+        // Parse and validate request body
         let message;
         try {
             const body = JSON.parse(event.body || '{}');
             message = body.message;
+            console.log('Parsed message:', message);
         } catch (error) {
+            console.error('JSON parse error:', error);
             return {
                 statusCode: 400,
                 headers: corsHeaders,
@@ -89,26 +106,37 @@ const handler: Handler = async (event) => {
             };
         }
 
+        // Send message to Telegram
         const result = await sendTelegramMessage(message);
+
+        const response = {
+            success: true,
+            message: 'Notification sent successfully',
+            result
+        };
+
+        console.log('Sending response:', response);
 
         return {
             statusCode: 200,
             headers: corsHeaders,
-            body: JSON.stringify({
-                success: true,
-                message: 'Notification sent successfully',
-                result
-            })
+            body: JSON.stringify(response)
         };
     } catch (error) {
         console.error('Function error:', error);
+
+        const errorResponse = {
+            success: false,
+            error: error instanceof Error ? error.message : 'Internal server error',
+            details: error instanceof Error ? error.stack : undefined
+        };
+
+        console.log('Sending error response:', errorResponse);
+
         return {
             statusCode: 500,
             headers: corsHeaders,
-            body: JSON.stringify({
-                success: false,
-                error: error instanceof Error ? error.message : 'Internal server error'
-            })
+            body: JSON.stringify(errorResponse)
         };
     }
 };

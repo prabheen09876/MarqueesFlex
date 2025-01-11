@@ -2,26 +2,33 @@ const getApiUrl = () => {
     if (import.meta.env.PROD) {
         return 'https://marqueesflex.netlify.app/.netlify/functions';
     }
-    // For local development
-    return '/.netlify/functions';
+    return 'http://localhost:8888/.netlify/functions';
 };
 
 export const sendTelegramNotification = async (message: string) => {
     try {
+        console.log('Sending notification:', { message });
+
         const baseUrl = getApiUrl();
         const response = await fetch(`${baseUrl}/notify-order`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'Accept': 'application/json'
             },
             body: JSON.stringify({ message })
         });
 
+        // First get the raw response text
+        const responseText = await response.text();
+        console.log('Raw response:', responseText);
+
+        // Try to parse it as JSON
         let data;
         try {
-            data = await response.json();
+            data = JSON.parse(responseText);
         } catch (error) {
-            console.error('Failed to parse JSON response:', error);
+            console.error('Failed to parse response:', responseText);
             throw new Error('Invalid server response');
         }
 
@@ -33,6 +40,9 @@ export const sendTelegramNotification = async (message: string) => {
         return data;
     } catch (error) {
         console.error('API Error:', error);
-        throw error;
+        if (error instanceof Error) {
+            throw error;
+        }
+        throw new Error('Unknown error occurred');
     }
 }; 
