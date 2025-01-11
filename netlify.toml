@@ -6,6 +6,7 @@
 [functions]
   node_bundler = "esbuild"
   external_node_modules = ["node-fetch"]
+  included_files = ["netlify/functions/**"]
 
 [[redirects]]
   from = "/.netlify/functions/*"
@@ -21,4 +22,3 @@
 
 [build.environment]
   NODE_VERSION = "18"
-  NPM_FLAGS = "--legacy-peer-deps"

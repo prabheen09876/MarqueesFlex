@@ -17,16 +17,22 @@ export const sendTelegramNotification = async (message: string) => {
             body: JSON.stringify({ message })
         });
 
-        const data = await response.json();
+        let data;
+        try {
+            data = await response.json();
+        } catch (error) {
+            console.error('Failed to parse JSON response:', error);
+            throw new Error('Invalid server response');
+        }
 
         if (!response.ok || !data.success) {
-            console.error('Telegram API Error:', data);
+            console.error('API Error Response:', data);
             throw new Error(data.error || 'Failed to send notification');
         }
 
         return data;
     } catch (error) {
         console.error('API Error:', error);
-        throw new Error(error instanceof Error ? error.message : 'Failed to send notification');
+        throw error;
     }
 }; 
