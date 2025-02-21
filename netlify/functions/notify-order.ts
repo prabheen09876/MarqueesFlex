@@ -1,5 +1,5 @@
 import { Handler } from '@netlify/functions';
-import fetch from 'cross-fetch';
+import axios from 'axios';
 
 console.log('Loading function with environment:', {
     NODE_ENV: process.env.NODE_ENV,
@@ -35,34 +35,17 @@ const sendTelegramMessage = async (text: string) => {
         const url = `https://api.telegram.org/bot${token}/sendMessage`;
         console.log('Sending to Telegram URL:', url);
 
-        const response = await fetch(url, {
-            method: 'POST',
+        const response = await axios.post(url, {
+            chat_id: chatId,
+            text: text,
+            parse_mode: 'HTML'
+        }, {
             headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                chat_id: chatId,
-                text: text,
-                parse_mode: 'HTML'
-            })
+                'Content-Type': 'application/json'
+            }
         });
 
-        const responseText = await response.text();
-        console.log('Telegram raw response:', responseText);
-
-        let data;
-        try {
-            data = JSON.parse(responseText);
-        } catch (error) {
-            console.error('Failed to parse Telegram response:', error);
-            throw new Error('Invalid response from Telegram');
-        }
-
-        if (!response.ok) {
-            throw new Error(data.description || 'Failed to send Telegram message');
-        }
-
-        return data;
+        return response.data;
     } catch (error) {
         console.error('Telegram API error:', error);
         throw error;

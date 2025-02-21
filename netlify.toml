@@ -5,12 +5,13 @@
 
 [functions]
   node_bundler = "esbuild"
-  external_node_modules = ["cross-fetch"]
+  external_node_modules = ["axios"]
   included_files = [".env"]
 
 [build.environment]
   TELEGRAM_BOT_TOKEN = "7765791698:AAEdPdmRYZ3aHiwD0e8hUDmX72grWM1zTNA"
   TELEGRAM_CHAT_ID = "1157438477"
+  NODE_VERSION = "18"
 
 [[redirects]]
   from = "/.netlify/functions/*"
