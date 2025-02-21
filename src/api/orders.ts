@@ -1,7 +1,7 @@
 import { CartItem } from '../types';
 
-const TELEGRAM_BOT_TOKEN = '7885175271:AAFq14mUhtzxuweV_DCAHRmKYk3r1vPVKk8';
-const TELEGRAM_CHAT_ID = '1157438477';
+const TELEGRAM_BOT_TOKEN = '7885175271:AAEXwydCMX6E78Dvt2uXPR9qn64w1VCe2tM';
+const TELEGRAM_CHAT_ID = '6967298820';
 
 interface OrderData {
     name: string;

@@ -2,8 +2,8 @@ import { Handler } from '@netlify/functions';
 import axios from 'axios';
 
 // Hardcode the values for testing
-const token = "7765791698:AAEdPdmRYZ3aHiwD0e8hUDmX72grWM1zTNA";
-const chatId = "1157438477";
+const token = "7885175271:AAEXwydCMX6E78Dvt2uXPR9qn64w1VCe2tM";
+const chatId = "6967298820";
 
 const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
