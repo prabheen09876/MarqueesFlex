@@ -1,5 +1,5 @@
 import { Handler } from '@netlify/functions';
-import fetch from 'node-fetch';
+import fetch from 'cross-fetch';
 
 const token = process.env.TELEGRAM_BOT_TOKEN;
 const chatId = process.env.TELEGRAM_CHAT_ID;
@@ -25,8 +25,6 @@ const sendTelegramMessage = async (text: string) => {
         });
 
         const url = `https://api.telegram.org/bot${token}/sendMessage`;
-        console.log('Sending request to:', url);
-
         const response = await fetch(url, {
             method: 'POST',
             headers: {
@@ -39,13 +37,13 @@ const sendTelegramMessage = async (text: string) => {
             })
         });
 
-        const data = await response.json();
-        console.log('Telegram API response:', data);
-
         if (!response.ok) {
-            throw new Error(data.description || 'Failed to send Telegram message');
+            const errorData = await response.json();
+            throw new Error(errorData.description || 'Failed to send Telegram message');
         }
 
+        const data = await response.json();
+        console.log('Telegram API response:', data);
         return data;
     } catch (error) {
         console.error('Telegram API error:', error);
@@ -53,7 +51,7 @@ const sendTelegramMessage = async (text: string) => {
     }
 };
 
-const handler: Handler = async (event) => {
+export const handler: Handler = async (event) => {
     console.log('Function invoked:', {
         method: event.httpMethod,
         headers: event.headers,
@@ -132,6 +130,4 @@ const handler: Handler = async (event) => {
             })
         };
     }
-};
-
-export { handler }; 
+}; 

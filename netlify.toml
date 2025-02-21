@@ -5,8 +5,7 @@
 
 [functions]
   node_bundler = "esbuild"
-  external_node_modules = ["node-fetch"]
-  included_files = ["netlify/functions/**"]
+  external_node_modules = ["cross-fetch"]
 
 [[redirects]]
   from = "/.netlify/functions/*"
@@ -20,12 +19,8 @@
   to = "/index.html"
   status = 200
 
-[build.environment]
-  NODE_VERSION = "18"
-
 [dev]
-  framework = "#custom"
-  command = "npm run dev"
+  framework = "vite"
   targetPort = 5174
   port = 8888
   publish = "dist"

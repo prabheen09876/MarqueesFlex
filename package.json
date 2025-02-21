@@ -4,15 +4,12 @@
   "version": "0.0.0",
   "type": "module",
   "engines": {
-    "node": "18.x"
+    "node": ">=18.0.0"
   },
   "scripts": {
-    "dev:vite": "vite",
-    "dev:server": "node server/index.js",
-    "dev:netlify": "netlify dev --port 3000",
-    "dev": "concurrently \"npm run dev:netlify\" \"npm run dev:server\"",
+    "dev": "vite",
+    "netlify:dev": "netlify dev",
     "build": "vite build",
-    "prebuild": "npm install",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -33,7 +30,6 @@
     "lenis": "^1.1.16",
     "lucide-react": "^0.344.0",
     "multer": "^1.4.5-lts.1",
-    "node-fetch": "^3.3.2",
     "nodemailer": "^6.9.16",
     "pg": "^8.13.1",
     "puppeteer": "^19.7.0",
@@ -46,7 +42,8 @@
     "sqlite": "^5.1.1",
     "sqlite3": "^5.1.7",
     "whatsapp-web.js": "^1.19.4",
-    "zod": "^3.22.4"
+    "zod": "^3.22.4",
+    "cross-fetch": "^4.0.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.9.1",

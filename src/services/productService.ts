@@ -9,7 +9,8 @@ import {
   doc,
   DocumentData
 } from 'firebase/firestore';
-import { db, auth } from '../firebase/config';
+import { ref, getDownloadURL } from 'firebase/storage';
+import { db, auth, storage } from '../firebase/config';
 import type { Product } from '../types';
 
 const COLLECTION_NAME = 'products';
@@ -78,17 +79,30 @@ export async function getProducts(category?: string) {
     const querySnapshot = await getDocs(q);
     const products: Product[] = [];
 
-    querySnapshot.forEach((doc) => {
+    for (const doc of querySnapshot.docs) {
       const data = doc.data() as DocumentData;
+
+      // Handle image URL
+      let imageUrl = data.image;
+      if (imageUrl && imageUrl.startsWith('gs://')) {
+        try {
+          const storageRef = ref(storage, imageUrl);
+          imageUrl = await getDownloadURL(storageRef);
+        } catch (error) {
+          console.error('Error getting image URL:', error);
+          imageUrl = ''; // Set a default or empty image URL
+        }
+      }
+
       products.push({
         id: doc.id,
         name: data.name,
         description: data.description,
         price: data.price,
-        image: data.image,
+        image: imageUrl,
         category: data.category
       });
-    });
+    }
 
     return products;
   } catch (error: any) {

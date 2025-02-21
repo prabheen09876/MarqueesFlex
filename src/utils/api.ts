@@ -2,7 +2,7 @@ const getApiUrl = () => {
     if (import.meta.env.PROD) {
         return 'https://marqueesflex.netlify.app/.netlify/functions';
     }
-    return 'http://localhost:8888/.netlify/functions';
+    return '/.netlify/functions';
 };
 
 export const sendTelegramNotification = async (message: string) => {
@@ -33,16 +33,12 @@ export const sendTelegramNotification = async (message: string) => {
         }
 
         if (!response.ok || !data.success) {
-            console.error('API Error Response:', data);
             throw new Error(data.error || 'Failed to send notification');
         }
 
         return data;
     } catch (error) {
         console.error('API Error:', error);
-        if (error instanceof Error) {
-            throw error;
-        }
-        throw new Error('Unknown error occurred');
+        throw error;
     }
 }; 

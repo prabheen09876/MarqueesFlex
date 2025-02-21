@@ -13,9 +13,9 @@ export default defineConfig({
       '/.netlify/functions': {
         target: 'http://localhost:8888',
         changeOrigin: true,
-        secure: false,
-      },
-    },
+        secure: false
+      }
+    }
   },
   build: {
     outDir: 'dist',
