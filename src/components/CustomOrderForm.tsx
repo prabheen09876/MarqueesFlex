@@ -115,6 +115,12 @@ export default function CustomOrderForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validate form before submitting
+    if (!validateForm()) {
+      return;
+    }
+
     try {
       setIsSubmitting(true);
 
@@ -123,14 +129,23 @@ export default function CustomOrderForm() {
 Customer: ${formData.name}
 Phone: ${formData.phone}
 Email: ${formData.email}
-Event Date: ${formData.eventDate}
-Requirements: ${formData.requirements}
-      `;
+Category: ${formData.category}
+Description: ${formData.description}
+        `;
 
       await sendTelegramNotification(orderMessage);
 
-      // Reset form and show success
-      resetForm();
+      // Reset form
+      setFormData({
+        name: '',
+        email: '',
+        phone: '',
+        category: 'Select Category',
+        description: ''
+      });
+      setTouched({});
+      setErrors({});
+
       toast.success('Order submitted successfully!');
     } catch (error) {
       console.error('Error submitting custom order:', error);

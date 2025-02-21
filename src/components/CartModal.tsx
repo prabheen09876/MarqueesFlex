@@ -49,8 +49,10 @@ ${items.map(item => `
 Total: ₹${formatPrice(totalPrice)}
       `;
 
-      // Use the utility function instead of direct fetch
-      await sendTelegramNotification(orderMessage);
+      console.log('Sending order:', orderMessage);
+
+      const response = await sendTelegramNotification(orderMessage);
+      console.log('Order response:', response);
 
       // Clear cart and show success message
       clearCart();
@@ -58,7 +60,7 @@ Total: ₹${formatPrice(totalPrice)}
       onClose();
     } catch (error) {
       console.error('Checkout error:', error);
-      toast.error('Failed to process order. Please try again.');
+      toast.error(error instanceof Error ? error.message : 'Failed to process order');
     } finally {
       setIsSubmitting(false);
     }
