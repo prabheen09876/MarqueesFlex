@@ -1,6 +1,13 @@
 import { Handler } from '@netlify/functions';
 import fetch from 'cross-fetch';
 
+console.log('Loading function with environment:', {
+    NODE_ENV: process.env.NODE_ENV,
+    hasToken: !!process.env.TELEGRAM_BOT_TOKEN,
+    hasChat: !!process.env.TELEGRAM_CHAT_ID,
+    envKeys: Object.keys(process.env)
+});
+
 const token = process.env.TELEGRAM_BOT_TOKEN;
 const chatId = process.env.TELEGRAM_CHAT_ID;
 
