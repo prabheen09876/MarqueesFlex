@@ -1,15 +1,9 @@
 import { Handler } from '@netlify/functions';
 import axios from 'axios';
 
-console.log('Loading function with environment:', {
-    NODE_ENV: process.env.NODE_ENV,
-    hasToken: !!process.env.TELEGRAM_BOT_TOKEN,
-    hasChat: !!process.env.TELEGRAM_CHAT_ID,
-    envKeys: Object.keys(process.env)
-});
-
-const token = process.env.TELEGRAM_BOT_TOKEN;
-const chatId = process.env.TELEGRAM_CHAT_ID;
+// Hardcode the values for testing
+const token = "7765791698:AAEdPdmRYZ3aHiwD0e8hUDmX72grWM1zTNA";
+const chatId = "1157438477";
 
 const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
@@ -20,46 +14,34 @@ const corsHeaders = {
 
 const sendTelegramMessage = async (text: string) => {
     try {
-        // Log environment variables (safely)
-        console.log('Environment check:', {
-            hasToken: !!token,
-            hasChat: !!chatId,
-            tokenLength: token?.length,
-            chatIdLength: chatId?.length
-        });
-
         if (!token || !chatId) {
-            throw new Error('Missing Telegram configuration. Please check environment variables.');
+            throw new Error('Missing Telegram configuration');
         }
 
         const url = `https://api.telegram.org/bot${token}/sendMessage`;
-        console.log('Sending to Telegram URL:', url);
 
         const response = await axios.post(url, {
             chat_id: chatId,
             text: text,
             parse_mode: 'HTML'
-        }, {
-            headers: {
-                'Content-Type': 'application/json'
-            }
         });
 
         return response.data;
     } catch (error) {
-        console.error('Telegram API error:', error);
+        if (axios.isAxiosError(error)) {
+            console.error('Axios error:', {
+                status: error.response?.status,
+                data: error.response?.data,
+                message: error.message
+            });
+        } else {
+            console.error('Error:', error);
+        }
         throw error;
     }
 };
 
 export const handler: Handler = async (event) => {
-    // Log incoming request details
-    console.log('Function invoked:', {
-        method: event.httpMethod,
-        headers: event.headers,
-        body: event.body?.substring(0, 200)
-    });
-
     if (event.httpMethod === 'OPTIONS') {
         return {
             statusCode: 204,
@@ -80,22 +62,8 @@ export const handler: Handler = async (event) => {
             };
         }
 
-        let message;
-        try {
-            const body = JSON.parse(event.body || '{}');
-            message = body.message;
-            console.log('Parsed message:', message);
-        } catch (error) {
-            console.error('JSON parse error:', error);
-            return {
-                statusCode: 400,
-                headers: corsHeaders,
-                body: JSON.stringify({
-                    success: false,
-                    error: 'Invalid JSON body'
-                })
-            };
-        }
+        const body = JSON.parse(event.body || '{}');
+        const message = body.message;
 
         if (!message) {
             return {
@@ -126,8 +94,7 @@ export const handler: Handler = async (event) => {
             headers: corsHeaders,
             body: JSON.stringify({
                 success: false,
-                error: error instanceof Error ? error.message : 'Internal server error',
-                details: error instanceof Error ? error.stack : undefined
+                error: error instanceof Error ? error.message : 'Internal server error'
             })
         };
     }
