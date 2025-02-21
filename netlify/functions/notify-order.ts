@@ -13,18 +13,21 @@ const corsHeaders = {
 
 const sendTelegramMessage = async (text: string) => {
     try {
-        if (!token || !chatId) {
-            console.error('Missing configuration:', { hasToken: !!token, hasChatId: !!chatId });
-            throw new Error('Missing Telegram configuration');
-        }
-
-        console.log('Attempting to send message to Telegram:', {
-            chatId,
-            messageLength: text.length,
-            messagePreview: text.substring(0, 100) + '...'
+        // Log environment variables (safely)
+        console.log('Environment check:', {
+            hasToken: !!token,
+            hasChat: !!chatId,
+            tokenLength: token?.length,
+            chatIdLength: chatId?.length
         });
 
+        if (!token || !chatId) {
+            throw new Error('Missing Telegram configuration. Please check environment variables.');
+        }
+
         const url = `https://api.telegram.org/bot${token}/sendMessage`;
+        console.log('Sending to Telegram URL:', url);
+
         const response = await fetch(url, {
             method: 'POST',
             headers: {
@@ -37,13 +40,21 @@ const sendTelegramMessage = async (text: string) => {
             })
         });
 
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.description || 'Failed to send Telegram message');
+        const responseText = await response.text();
+        console.log('Telegram raw response:', responseText);
+
+        let data;
+        try {
+            data = JSON.parse(responseText);
+        } catch (error) {
+            console.error('Failed to parse Telegram response:', error);
+            throw new Error('Invalid response from Telegram');
         }
 
-        const data = await response.json();
-        console.log('Telegram API response:', data);
+        if (!response.ok) {
+            throw new Error(data.description || 'Failed to send Telegram message');
+        }
+
         return data;
     } catch (error) {
         console.error('Telegram API error:', error);
@@ -52,10 +63,11 @@ const sendTelegramMessage = async (text: string) => {
 };
 
 export const handler: Handler = async (event) => {
+    // Log incoming request details
     console.log('Function invoked:', {
         method: event.httpMethod,
         headers: event.headers,
-        body: event.body ? event.body.substring(0, 200) : null
+        body: event.body?.substring(0, 200)
     });
 
     if (event.httpMethod === 'OPTIONS') {
@@ -84,7 +96,7 @@ export const handler: Handler = async (event) => {
             message = body.message;
             console.log('Parsed message:', message);
         } catch (error) {
-            console.error('JSON parse error:', error, 'Raw body:', event.body);
+            console.error('JSON parse error:', error);
             return {
                 statusCode: 400,
                 headers: corsHeaders,
@@ -119,7 +131,6 @@ export const handler: Handler = async (event) => {
         };
     } catch (error) {
         console.error('Function error:', error);
-
         return {
             statusCode: 500,
             headers: corsHeaders,
